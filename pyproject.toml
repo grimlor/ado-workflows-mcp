@@ -23,7 +23,7 @@ classifiers = [
 
 dependencies = [
     "ado-workflows>=0.1.0",
-    "mcp[cli]>=1.6.0",
+    "fastmcp>=2.0.0",
 ]
 
 [tool.uv]

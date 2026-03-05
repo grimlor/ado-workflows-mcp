@@ -2,19 +2,17 @@
 
 from __future__ import annotations
 
-import asyncio
-
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 mcp = FastMCP(
     "ado-workflows-mcp",
-    description="Azure DevOps workflow automation tools",
+    instructions="Azure DevOps workflow automation tools",
 )
 
 
 def main() -> None:
     """Run the MCP server."""
-    asyncio.run(mcp.run_async())
+    mcp.run()
 
 
 if __name__ == "__main__":
