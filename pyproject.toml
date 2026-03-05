@@ -1,0 +1,100 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ado-workflows-mcp"
+version = "0.1.0"
+description = "MCP server exposing Azure DevOps workflow automation tools"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "grimlor" }]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "ado-workflows>=0.1.0",
+    "mcp[cli]>=1.6.0",
+]
+
+[tool.uv]
+prerelease = "if-necessary-or-explicit"
+
+[project.optional-dependencies]
+dev = [
+    "pyright>=1.1,<2",
+    "pytest>=8,<9",
+    "pytest-asyncio>=0.24,<1",
+    "pytest-cov>=6,<7",
+    "ruff>=0.8,<1",
+    "taskipy>=1.14,<2",
+    "pre-commit>=4,<5",
+]
+
+[project.scripts]
+ado-workflows-mcp = "ado_workflows_mcp.server:main"
+
+[project.urls]
+Repository = "https://github.com/grimlor/ado-workflows-mcp"
+
+# ---------------------------------------------------------------------------
+# Taskipy
+# ---------------------------------------------------------------------------
+[tool.taskipy.tasks]
+lint   = "uv run ruff check --fix src/ tests/"
+format = "uv run ruff format src/ tests/"
+type   = "uv run pyright src/ tests/"
+test   = "uv run pytest tests/ -v"
+cov    = "uv run pytest tests/ --cov=ado_workflows_mcp --cov-report=term-missing"
+check  = "task lint && task type && task test"
+
+# ---------------------------------------------------------------------------
+# Ruff
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 99
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+preview = true
+explicit-preview-rules = true
+select = [
+    "E",        # pycodestyle errors
+    "W",        # pycodestyle warnings
+    "F",        # pyflakes
+    "I",        # isort
+    "N",        # pep8-naming
+    "UP",       # pyupgrade
+    "B",        # flake8-bugbear
+    "SIM",      # flake8-simplify
+    "TCH",      # flake8-type-checking
+    "RUF",      # ruff-specific rules
+    "PLC0415",  # import-outside-top-level
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ado_workflows_mcp"]
+
+# ---------------------------------------------------------------------------
+# Pyright
+# ---------------------------------------------------------------------------
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
