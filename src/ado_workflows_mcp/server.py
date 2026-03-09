@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from fastmcp import FastMCP
-
-mcp = FastMCP(
-    "ado-workflows-mcp",
-    instructions="Azure DevOps workflow automation tools",
-)
+# Importing the tools package triggers @mcp.tool() registration for every
+# tool function re-exported via tools/__init__.py.
+import ado_workflows_mcp.tools as _tools  # noqa: F401
+from ado_workflows_mcp.mcp_instance import mcp
 
 
 def main() -> None:
