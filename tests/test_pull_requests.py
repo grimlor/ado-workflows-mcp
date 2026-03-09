@@ -167,6 +167,10 @@ class TestEstablishPRContext:
         assert result.ai_guidance is not None, (
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "context" in guidance or "url" in guidance, (
+            f"ai_guidance should mention context or URL for numeric ID, got: {guidance}"
+        )
 
     def test_invalid_url_returns_error(self) -> None:
         """
@@ -186,6 +190,10 @@ class TestEstablishPRContext:
         )
         assert result.ai_guidance is not None, (
             f"Expected ai_guidance on error, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "pr" in guidance or "url" in guidance, (
+            f"ai_guidance should mention PR or URL for invalid input, got: {guidance}"
         )
 
 
@@ -267,6 +275,10 @@ class TestCreatePullRequest:
         assert result.ai_guidance is not None, (
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "branch" in guidance or "credential" in guidance, (
+            f"ai_guidance should mention branches or credentials, got: {guidance}"
+        )
 
     def test_sdk_failure_returns_error(self, tmp_path: Any) -> None:
         """
@@ -305,6 +317,7 @@ class TestCreatePullRequest:
         assert result.ai_guidance is not None, (
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
-        assert result.ai_guidance.action_required, (
-            "Expected non-empty action_required in ai_guidance"
+        guidance = result.ai_guidance.action_required.lower()
+        assert "branch" in guidance or "credential" in guidance, (
+            f"ai_guidance should mention branches or credentials for SDK failure, got: {guidance}"
         )

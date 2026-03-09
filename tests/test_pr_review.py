@@ -189,8 +189,12 @@ class TestGetPRReviewStatus:
         assert result.ai_guidance is not None, (
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
-        assert result.ai_guidance.action_required, (
-            "Expected non-empty action_required in ai_guidance"
+        guidance = result.ai_guidance.action_required.lower()
+        assert "pr" in guidance or "review" in guidance, (
+            f"ai_guidance should mention PR or review for status failure, got: {guidance}"
+        )
+        assert "credential" in guidance or "verify" in guidance, (
+            f"ai_guidance should suggest verification steps, got: {guidance}"
         )
 
     def test_review_status_with_warnings_includes_them(self, tmp_path: Any) -> None:

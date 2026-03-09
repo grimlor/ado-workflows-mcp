@@ -155,8 +155,15 @@ class TestRepositoryDiscovery:
         assert result.ai_guidance is not None, (
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
-        assert result.ai_guidance.action_required, (
-            "Expected non-empty action_required in ai_guidance"
+        guidance = result.ai_guidance.action_required.lower()
+        assert "working directory" in guidance, (
+            f"ai_guidance should mention 'working directory', got: {guidance}"
+        )
+        assert "azure devops" in guidance or "ado" in guidance, (
+            f"ai_guidance should reference Azure DevOps, got: {guidance}"
+        )
+        assert result.ai_guidance.checks, (
+            "ai_guidance.checks should list concrete verification steps"
         )
 
     def test_no_working_directory_uses_cwd(
