@@ -9,7 +9,7 @@ description = "MCP server exposing Azure DevOps workflow automation tools"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
-authors = [{ name = "grimlor" }]
+authors = [{ name = "Jack Pines" }]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
