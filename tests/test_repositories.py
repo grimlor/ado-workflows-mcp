@@ -191,3 +191,95 @@ class TestRepositoryDiscovery:
         assert result.get("organization") == "TestOrg", (
             f"Expected org 'TestOrg' from cwd, got {result.get('organization')!r}"
         )
+
+    def test_multiple_repos_no_match_returns_actionable_error(self, tmp_path: Any) -> None:
+        """
+        Given multiple repos but none match working directory
+        When repository_discovery is called
+        Then returns ActionableError with suggestion to narrow search
+        """
+        # Given: discover_repositories returns repos, infer_target_repository returns None
+        with (
+            patch(
+                "ado_workflows_mcp.tools.repositories.discover_repositories",
+                return_value=[{"name": "Repo1"}, {"name": "Repo2"}],
+            ),
+            patch(
+                "ado_workflows_mcp.tools.repositories.infer_target_repository",
+                return_value=None,
+            ),
+        ):
+            # When: called
+            result = repository_discovery(working_directory=str(tmp_path))
+
+        # Then: returns ActionableError
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError for no-match, got {type(result).__name__}: {result}"
+        )
+        assert result.suggestion is not None, (
+            f"Expected suggestion on no-match error. Error: {result.error}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on no-match error, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "narrow" in guidance or "working_directory" in guidance, (
+            f"ai_guidance should suggest narrowing search, got: {guidance}"
+        )
+
+    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When repository_discovery is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: library raises ActionableError with no ai_guidance
+        bare_error = ActionableError(
+            error="Git not found",
+            error_type="VALIDATION",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.repositories.discover_repositories",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = repository_discovery(working_directory=str(tmp_path))
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "discovery" in guidance or "error" in guidance or "retry" in guidance, (
+            f"ai_guidance should mention discovery/error/retry, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When repository_discovery is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: library raises generic exception
+        with patch(
+            "ado_workflows_mcp.tools.repositories.discover_repositories",
+            side_effect=RuntimeError("segfault"),
+        ):
+            # When: called
+            result = repository_discovery(working_directory=str(tmp_path))
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "unexpected" in guidance or "discovery" in guidance, (
+            f"ai_guidance should mention unexpected/discovery, got: {guidance}"
+        )

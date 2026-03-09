@@ -196,6 +196,62 @@ class TestEstablishPRContext:
             f"ai_guidance should mention PR or URL for invalid input, got: {guidance}"
         )
 
+    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When establish_pr_context is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: library raises ActionableError with no ai_guidance
+        bare_error = ActionableError(
+            error="Context resolution failed",
+            error_type="VALIDATION",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.pull_requests._lib_establish",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = establish_pr_context(pr_url_or_id="42")
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "pr" in guidance or "context" in guidance or "url" in guidance, (
+            f"ai_guidance should mention PR/context/URL, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When establish_pr_context is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: library function raises a raw exception
+        with patch(
+            "ado_workflows_mcp.tools.pull_requests._lib_establish",
+            side_effect=RuntimeError("unexpected parse error"),
+        ):
+            # When: called
+            result = establish_pr_context(pr_url_or_id="42")
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        assert result.ai_guidance.steps is not None, (
+            f"Expected recovery steps in ai_guidance. Got: {result.ai_guidance}"
+        )
+
 
 class TestCreatePullRequest:
     """

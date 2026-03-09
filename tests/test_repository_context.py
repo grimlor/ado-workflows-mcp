@@ -25,6 +25,7 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+from actionable_errors import ActionableError
 from ado_workflows.context import RepositoryContext
 
 from ado_workflows_mcp.tools.repository_context import (
@@ -113,6 +114,62 @@ class TestSetRepositoryContext:
             f"Expected suggestion on error dict. Got: {result}"
         )
 
+    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When set_repository_context is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: library raises ActionableError with no ai_guidance
+        bare_error = ActionableError(
+            error="Discovery failed",
+            error_type="VALIDATION",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.repository_context._lib_set",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = set_repository_context(working_directory="/fake/path")
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "context" in guidance or "git" in guidance or "working directory" in guidance, (
+            f"ai_guidance should mention context/git/working directory, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When set_repository_context is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: library raises generic exception
+        with patch(
+            "ado_workflows_mcp.tools.repository_context._lib_set",
+            side_effect=RuntimeError("segfault"),
+        ):
+            # When: called
+            result = set_repository_context(working_directory="/fake/path")
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        assert result.ai_guidance.checks is not None, (
+            f"Expected checks in ai_guidance for internal error. Got: {result.ai_guidance}"
+        )
+
 
 class TestGetRepositoryContextStatus:
     """
@@ -170,6 +227,62 @@ class TestGetRepositoryContextStatus:
             f"Expected context_set=False when no context set. Got: {result}"
         )
 
+    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When get_repository_context_status is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: library raises ActionableError with no ai_guidance
+        bare_error = ActionableError(
+            error="Cache read failed",
+            error_type="INTERNAL",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.repository_context._lib_status",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = get_repository_context_status()
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "context" in guidance or "status" in guidance or "retry" in guidance, (
+            f"ai_guidance should mention context/status/retry, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When get_repository_context_status is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: library raises generic exception
+        with patch(
+            "ado_workflows_mcp.tools.repository_context._lib_status",
+            side_effect=RuntimeError("cache corrupted"),
+        ):
+            # When: called
+            result = get_repository_context_status()
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        assert result.ai_guidance.steps is not None, (
+            f"Expected recovery steps in ai_guidance. Got: {result.ai_guidance}"
+        )
+
 
 class TestClearRepositoryContext:
     """
@@ -225,4 +338,61 @@ class TestClearRepositoryContext:
         # Then: still returns confirmation dict (idempotent)
         assert isinstance(result, dict), (
             f"Expected dict result, got {type(result).__name__}: {result}"
+        )
+
+    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When clear_repository_context is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: library raises ActionableError with no ai_guidance
+        bare_error = ActionableError(
+            error="Clear operation failed",
+            error_type="INTERNAL",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.repository_context._lib_clear",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = clear_repository_context()
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "clear" in guidance or "retry" in guidance or "error" in guidance, (
+            f"ai_guidance should mention clear/retry/error, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When clear_repository_context is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: library raises generic exception
+        with patch(
+            "ado_workflows_mcp.tools.repository_context._lib_clear",
+            side_effect=RuntimeError("unexpected failure"),
+        ):
+            # When: called
+            result = clear_repository_context()
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "clear" in guidance or "retry" in guidance, (
+            f"ai_guidance should mention clear/retry, got: {guidance}"
         )

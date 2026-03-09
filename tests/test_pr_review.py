@@ -231,6 +231,65 @@ class TestGetPRReviewStatus:
         # Note: whether warnings list is populated depends on library
         # implementation; we verify the type is correct and the call succeeds
 
+    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When get_pr_review_status is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        # Given: _get_context raises ActionableError without ai_guidance
+        bare_error = ActionableError(
+            error="Context stale",
+            error_type="VALIDATION",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.pr_review._get_context",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = get_pr_review_status(pr_id=42)
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "review" in guidance or "pr" in guidance or "credential" in guidance, (
+            f"ai_guidance should mention review/PR/credential, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When get_pr_review_status is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: context helper raises a raw exception
+        with patch(
+            "ado_workflows_mcp.tools.pr_review._get_context",
+            side_effect=RuntimeError("cache corrupted"),
+        ):
+            # When: called
+            result = get_pr_review_status(pr_id=42)
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        assert result.ai_guidance.checks is not None, (
+            f"Expected checks in ai_guidance for internal error. Got: {result.ai_guidance}"
+        )
+
 
 class TestAnalyzePendingReviews:
     """
@@ -388,4 +447,63 @@ class TestAnalyzePendingReviews:
         )
         assert result.ai_guidance.action_required, (
             "Expected non-empty action_required in ai_guidance"
+        )
+
+    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When analyze_pending_reviews is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        # Given: _get_context raises ActionableError without ai_guidance
+        bare_error = ActionableError(
+            error="Context expired",
+            error_type="VALIDATION",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.pr_review._get_context",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = analyze_pending_reviews()
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "review" in guidance or "credential" in guidance or "context" in guidance, (
+            f"ai_guidance should mention review/credential/context, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When analyze_pending_reviews is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: context helper raises a raw exception
+        with patch(
+            "ado_workflows_mcp.tools.pr_review._get_context",
+            side_effect=RuntimeError("network unreachable"),
+        ):
+            # When: called
+            result = analyze_pending_reviews()
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        assert result.ai_guidance.steps is not None, (
+            f"Expected recovery steps in ai_guidance. Got: {result.ai_guidance}"
         )

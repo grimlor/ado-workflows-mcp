@@ -121,6 +121,11 @@ asyncio_mode = "auto"
 [tool.coverage.run]
 source = ["ado_workflows_mcp"]
 
+[tool.coverage.report]
+exclude_lines = [
+    "if __name__ == .__main__.",
+]
+
 # ---------------------------------------------------------------------------
 # python-semantic-release
 # ---------------------------------------------------------------------------

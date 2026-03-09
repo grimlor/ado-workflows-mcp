@@ -216,6 +216,40 @@ class TestAnalyzePRComments:
             f"ai_guidance should mention credentials or PR, got: {guidance}"
         )
 
+    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When analyze_pr_comments is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        # Given: establish_pr_context raises ActionableError without ai_guidance
+        bare_error = ActionableError(
+            error="PR not found",
+            error_type="NOT_FOUND",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = analyze_pr_comments(pr_url_or_id=_PR_URL)
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "comment" in guidance or "analysis" in guidance or "credential" in guidance, (
+            f"ai_guidance should mention comment/analysis/credential, got: {guidance}"
+        )
+
 
 class TestPostPRComment:
     """
@@ -328,6 +362,74 @@ class TestPostPRComment:
         )
         assert "credential" in guidance or "access" in guidance, (
             f"ai_guidance should mention credentials or access, got: {guidance}"
+        )
+
+    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When post_pr_comment is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        # Given: establish_pr_context raises ActionableError without ai_guidance
+        bare_error = ActionableError(
+            error="Auth expired",
+            error_type="AUTHENTICATION",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = post_pr_comment(
+                pr_url_or_id=_PR_URL,
+                comment_text="LGTM!",
+            )
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "posting" in guidance or "comment" in guidance or "credential" in guidance, (
+            f"ai_guidance should mention posting/comment/credential, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When post_pr_comment is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        # Given: establish_pr_context raises a raw exception
+        with patch(
+            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
+            side_effect=RuntimeError("connection pool exhausted"),
+        ):
+            # When: called
+            result = post_pr_comment(
+                pr_url_or_id=_PR_URL,
+                comment_text="LGTM!",
+            )
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        assert result.ai_guidance.checks is not None, (
+            f"Expected checks in ai_guidance for internal error. Got: {result.ai_guidance}"
         )
 
 
@@ -461,6 +563,76 @@ class TestReplyToPRComment:
         )
         assert "credential" in guidance or "verify" in guidance, (
             f"ai_guidance should suggest verification, got: {guidance}"
+        )
+
+    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When reply_to_pr_comment is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        # Given: establish_pr_context raises ActionableError without ai_guidance
+        bare_error = ActionableError(
+            error="Thread not found",
+            error_type="NOT_FOUND",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = reply_to_pr_comment(
+                pr_url_or_id=_PR_URL,
+                thread_id=10,
+                comment_text="reply",
+            )
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "reply" in guidance or "thread" in guidance or "credential" in guidance, (
+            f"ai_guidance should mention reply/thread/credential, got: {guidance}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
+        """
+        Given the library raises an unexpected Exception
+        When reply_to_pr_comment is called
+        Then returns ActionableError.internal with ai_guidance
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        # Given: establish_pr_context raises a raw exception
+        with patch(
+            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
+            side_effect=RuntimeError("socket timeout"),
+        ):
+            # When: called
+            result = reply_to_pr_comment(
+                pr_url_or_id=_PR_URL,
+                thread_id=10,
+                comment_text="acknowledged",
+            )
+
+        # Then: returns ActionableError with internal error details
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        assert result.ai_guidance.checks is not None, (
+            f"Expected checks in ai_guidance for internal error. Got: {result.ai_guidance}"
         )
 
 
@@ -629,4 +801,41 @@ class TestResolvePRComments:
         )
         assert "credential" in guidance or "verify" in guidance, (
             f"ai_guidance should suggest verification, got: {guidance}"
+        )
+
+    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+        """
+        Given the library raises ActionableError without ai_guidance
+        When resolve_pr_comments is called
+        Then returns the error with ai_guidance enriched
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        # Given: establish_pr_context raises ActionableError without ai_guidance
+        bare_error = ActionableError(
+            error="PR archived",
+            error_type="NOT_FOUND",
+            service="ado-workflows",
+        )
+        with patch(
+            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
+            side_effect=bare_error,
+        ):
+            # When: called
+            result = resolve_pr_comments(
+                pr_url_or_id=_PR_URL,
+                thread_ids=[1, 2],
+            )
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "resolution" in guidance or "thread" in guidance or "credential" in guidance, (
+            f"ai_guidance should mention resolution/thread/credential, got: {guidance}"
         )
