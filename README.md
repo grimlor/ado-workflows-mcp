@@ -1,7 +1,8 @@
 # ADO Workflows MCP Server
 
 [![CI](https://github.com/grimlor/ado-workflows-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/grimlor/ado-workflows-mcp/actions/workflows/ci.yml)
-[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/grimlor/COVERAGE_GIST_ID/raw/ado-workflows-mcp-coverage-badge.json)](https://github.com/grimlor/ado-workflows-mcp/actions/workflows/ci.yml)
+[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/grimlor/b7836cded70590f934b1877fd521c26b/raw/ado-workflows-mcp-coverage-badge.json)](https://github.com/grimlor/ado-workflows-mcp/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/ado-workflows-mcp)](https://pypi.org/project/ado-workflows-mcp/)
 
 An MCP server exposing [ado-workflows](https://github.com/grimlor/ado-workflows)
 as tool calls for AI agents. Enables Copilot and other MCP clients to discover
