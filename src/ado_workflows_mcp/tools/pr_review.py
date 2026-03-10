@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from actionable_errors import ActionableError, AIGuidance
-from ado_workflows.models import (  # noqa: TC002 — runtime for @mcp.tool() outputSchema
+from ado_workflows.models import (  # runtime for @mcp.tool() outputSchema
     PendingReviewResult,
     ReviewStatus,
 )

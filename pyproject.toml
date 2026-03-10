@@ -91,6 +91,15 @@ ignore = [
 combine-as-imports = true
 known-first-party = ["ado_workflows_mcp"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "PLC0415",  # import-outside-top-level — tests may import inside functions
+    "PLC2701",  # import-private-name — testing internal state is intentional
+]
+"src/ado_workflows_mcp/tools/*.py" = [
+    "TC002",  # runtime imports required for @mcp.tool() outputSchema generation
+]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

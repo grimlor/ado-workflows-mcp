@@ -9,7 +9,7 @@ from ado_workflows.comments import (
     reply_to_comment as _lib_reply,
     resolve_comments as _lib_resolve,
 )
-from ado_workflows.models import (  # noqa: TC002 — runtime for @mcp.tool() outputSchema
+from ado_workflows.models import (  # runtime for @mcp.tool() outputSchema
     CommentAnalysis,
     ResolveResult,
 )
