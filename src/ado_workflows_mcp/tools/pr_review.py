@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from actionable_errors import ActionableError, AIGuidance
-from ado_workflows.models import (
+from ado_workflows.models import (  # noqa: TC002 — runtime for @mcp.tool() outputSchema
     PendingReviewResult,
-    ReviewStatus
+    ReviewStatus,
 )
 from ado_workflows.review import (
     analyze_pending_reviews as _lib_analyze,

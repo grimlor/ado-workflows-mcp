@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from actionable_errors import ActionableError, AIGuidance
-from ado_workflows.models import CreatedPR
 from ado_workflows.lifecycle import create_pull_request as _lib_create_pr
+from ado_workflows.models import CreatedPR  # noqa: TC002 — runtime for @mcp.tool() outputSchema
 from ado_workflows.pr import AzureDevOpsPRContext, establish_pr_context as _lib_establish
 
 from ado_workflows_mcp.mcp_instance import mcp

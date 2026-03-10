@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 from actionable_errors import ActionableError, AIGuidance
-from ado_workflows.models import (
-    CommentAnalysis,
-    ResolveResult,
-)
 from ado_workflows.comments import (
     analyze_pr_comments as _lib_analyze,
     post_comment as _lib_post,
     reply_to_comment as _lib_reply,
     resolve_comments as _lib_resolve,
+)
+from ado_workflows.models import (  # noqa: TC002 — runtime for @mcp.tool() outputSchema
+    CommentAnalysis,
+    ResolveResult,
 )
 from ado_workflows.pr import establish_pr_context as _lib_establish_pr
 
