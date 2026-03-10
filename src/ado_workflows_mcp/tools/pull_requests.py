@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from actionable_errors import ActionableError, AIGuidance
+from ado_workflows.models import CreatedPR
 from ado_workflows.lifecycle import create_pull_request as _lib_create_pr
-from ado_workflows.pr import establish_pr_context as _lib_establish
+from ado_workflows.pr import AzureDevOpsPRContext, establish_pr_context as _lib_establish
 
 from ado_workflows_mcp.mcp_instance import mcp
 from ado_workflows_mcp.tools._helpers import _get_client, _get_context
@@ -16,7 +15,7 @@ from ado_workflows_mcp.tools._helpers import _get_client, _get_context
 def establish_pr_context(
     pr_url_or_id: str,
     working_directory: str | None = None,
-) -> Any:
+) -> AzureDevOpsPRContext | ActionableError:
     """Create reusable PR context from a URL or numeric ID.
 
     Parses a full PR URL or resolves a numeric PR ID using
@@ -64,7 +63,7 @@ def create_pull_request(
     description: str | None = None,
     is_draft: bool = False,
     working_directory: str | None = None,
-) -> Any:
+) -> CreatedPR | ActionableError:
     """Create a new pull request via the Azure DevOps SDK.
 
     Constructs a PR from branch names with optional title, description,

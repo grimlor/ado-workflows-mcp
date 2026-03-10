@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from actionable_errors import ActionableError, AIGuidance
+from ado_workflows.models import (
+    CommentAnalysis,
+    ResolveResult,
+)
 from ado_workflows.comments import (
     analyze_pr_comments as _lib_analyze,
     post_comment as _lib_post,
@@ -21,7 +23,7 @@ from ado_workflows_mcp.tools._helpers import _get_client
 def analyze_pr_comments(
     pr_url_or_id: str,
     working_directory: str | None = None,
-) -> Any:
+) -> CommentAnalysis | ActionableError:
     """Analyze all comment threads on a PR.
 
     Fetches threads, categorizes by status, and extracts author
@@ -67,7 +69,7 @@ def post_pr_comment(
     comment_text: str,
     status: str = "active",
     working_directory: str | None = None,
-) -> Any:
+) -> int | ActionableError:
     """Post a new comment thread to a PR.
 
     Creates a new comment thread with the specified content and status.
@@ -120,7 +122,7 @@ def reply_to_pr_comment(
     thread_id: int,
     comment_text: str,
     working_directory: str | None = None,
-) -> Any:
+) -> int | ActionableError:
     """Reply to an existing comment thread.
 
     Adds a reply to a specific thread on a PR.
@@ -173,7 +175,7 @@ def resolve_pr_comments(
     thread_ids: list[int],
     status: str = "fixed",
     working_directory: str | None = None,
-) -> Any:
+) -> ResolveResult | ActionableError:
     """Batch-resolve PR comment threads.
 
     Sets thread status to the target status for a list of thread IDs.

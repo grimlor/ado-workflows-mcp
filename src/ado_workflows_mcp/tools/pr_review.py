@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from actionable_errors import ActionableError, AIGuidance
+from ado_workflows.models import (
+    PendingReviewResult,
+    ReviewStatus
+)
 from ado_workflows.review import (
     analyze_pending_reviews as _lib_analyze,
     get_review_status as _lib_review,
@@ -18,7 +20,7 @@ from ado_workflows_mcp.tools._helpers import _get_client, _get_context
 def get_pr_review_status(
     pr_id: int,
     working_directory: str | None = None,
-) -> Any:
+) -> ReviewStatus | ActionableError:
     """Get comprehensive review status with vote invalidation detection.
 
     Fetches PR details, reviewer votes, commit history, and detects
@@ -66,7 +68,7 @@ def analyze_pending_reviews(
     max_days_old: int = 30,
     creator_filter: str | None = None,
     working_directory: str | None = None,
-) -> Any:
+) -> PendingReviewResult | ActionableError:
     """Discover PRs needing review attention across a repository.
 
     Lists active PRs, filters by age and creator, and enriches each

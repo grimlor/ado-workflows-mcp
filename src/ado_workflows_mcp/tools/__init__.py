@@ -7,7 +7,7 @@ with ``@mcp.tool()`` at import time.
 
 from __future__ import annotations
 
-# -- Explicit re-exports (importing triggers @mcp.tool registration) ---------
+import ado_workflows_mcp.tools._fixup_forward_refs as _fixup_forward_refs  # noqa: F401
 from ado_workflows_mcp.tools.pr_comments import (
     analyze_pr_comments as analyze_pr_comments,
     post_pr_comment as post_pr_comment,

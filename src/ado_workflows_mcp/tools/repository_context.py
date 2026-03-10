@@ -17,7 +17,7 @@ from ado_workflows_mcp.mcp_instance import mcp
 @mcp.tool()
 def set_repository_context(
     working_directory: str,
-) -> Any:
+) -> dict[str, Any] | ActionableError:
     """Cache repository context for the session.
 
     Sets the working directory and caches discovery results so
@@ -55,7 +55,7 @@ def set_repository_context(
 
 
 @mcp.tool()
-def get_repository_context_status() -> Any:
+def get_repository_context_status() -> dict[str, Any] | ActionableError:
     """Inspect current cached context state.
 
     Returns cache state, timestamps, and working directory details.
@@ -88,7 +88,7 @@ def get_repository_context_status() -> Any:
 
 
 @mcp.tool()
-def clear_repository_context() -> Any:
+def clear_repository_context() -> dict[str, Any] | ActionableError:
     """Reset cached context.
 
     Clears cached discovery results, forcing fresh discovery on
