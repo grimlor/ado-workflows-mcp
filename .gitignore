@@ -4,32 +4,33 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.eggs/
 
 # Virtual environments
 .venv/
+venv/
 
 # IDE
-.idea/
 .vscode/
-*.swp
-*.swo
+.idea/
 
-# Testing
-.pytest_cache/
-htmlcov/
-.coverage
-coverage.json
-
-# Linting / type-checking caches
-.ruff_cache/
-.mypy_cache/
-
-# Environment
+# direnv
+.direnv/
 .envrc.local
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Coverage
+.coverage
+coverage.json
+htmlcov/
+
+# mypy / ruff / pytest caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
 
 # Copilot work plans
 .copilot/*

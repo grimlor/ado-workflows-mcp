@@ -7,7 +7,7 @@ name = "ado-workflows-mcp"
 version = "0.1.2"
 description = "MCP server exposing Azure DevOps workflow automation tools"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 license = { text = "MIT" }
 authors = [{ name = "Jack Pines" }]
 classifiers = [
@@ -112,8 +112,12 @@ testpaths = ["tests"]
 python_files = ["*_test.py", "test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --strict-markers"
+addopts = "-v --strict-markers -m 'not integration and not live'"
 asyncio_mode = "auto"
+markers = [
+    "integration: marks tests requiring external services",
+    "live: marks tests requiring live network access",
+]
 
 # ---------------------------------------------------------------------------
 # Coverage
