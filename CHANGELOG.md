@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.1.2 (2026-03-10)
+
+### Bug Fixes
+
+- Remove global pyright suppressions, add inline pragmas
+  ([`9bc9cab`](https://github.com/grimlor/ado-workflows-mcp/commit/9bc9cab8205ef1aad89fa1a506c9a9528943496c))
+
+### Chores
+
+- Standardize author identity, add skills and sync workflow
+  ([`4bc9f4f`](https://github.com/grimlor/ado-workflows-mcp/commit/4bc9f4fdfc63027c56703605d8f73bf9d59ebbd4))
+
+
 ## v0.1.1 (2026-03-10)
 
 ### Bug Fixes
