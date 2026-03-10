@@ -319,6 +319,9 @@ class TestClearRepositoryContext:
 
         # And: subsequent status shows no context
         status = get_repository_context_status()
+        assert isinstance(status, dict), (
+            f"Expected dict status, got {type(status).__name__}: {status}"
+        )
         assert status.get("context_set") is False, (
             f"Expected context_set=False after clear. Got: {status}"
         )
