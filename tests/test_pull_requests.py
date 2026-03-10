@@ -58,11 +58,6 @@ def _git_success(remote: str = _ADO_REMOTE) -> MagicMock:
     return MagicMock(returncode=0, stdout=remote)
 
 
-def _git_failure() -> MagicMock:
-    """Return a mock subprocess result for a non-git directory."""
-    return MagicMock(returncode=1, stderr="fatal: not a git repository")
-
-
 def _mock_connection_factory() -> MagicMock:
     """Return a mock ConnectionFactory that produces a mock Connection."""
     factory = MagicMock()

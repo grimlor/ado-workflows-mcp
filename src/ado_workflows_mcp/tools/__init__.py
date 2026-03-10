@@ -7,7 +7,7 @@ with ``@mcp.tool()`` at import time.
 
 from __future__ import annotations
 
-import ado_workflows_mcp.tools._fixup_forward_refs as _fixup_forward_refs  # noqa: F401
+import ado_workflows_mcp.tools._fixup_forward_refs as _fixup_forward_refs  # noqa: F401  # pyright: ignore[reportUnusedImport]  # side-effect: patches forward refs
 from ado_workflows_mcp.tools.pr_comments import (
     analyze_pr_comments as analyze_pr_comments,
     post_pr_comment as post_pr_comment,

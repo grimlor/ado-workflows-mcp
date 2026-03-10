@@ -100,9 +100,9 @@ indent-style = "space"
 # ---------------------------------------------------------------------------
 [tool.pyright]
 pythonVersion = "3.12"
-typeCheckingMode = "standard"
-reportPrivateUsage = false
-reportMissingTypeStubs = false
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
 
 # ---------------------------------------------------------------------------
 # Pytest

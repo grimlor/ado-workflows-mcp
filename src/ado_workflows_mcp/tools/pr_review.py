@@ -13,7 +13,10 @@ from ado_workflows.review import (
 )
 
 from ado_workflows_mcp.mcp_instance import mcp
-from ado_workflows_mcp.tools._helpers import _get_client, _get_context
+from ado_workflows_mcp.tools._helpers import (
+    _get_client,  # pyright: ignore[reportPrivateUsage]  # package-internal helpers
+    _get_context,  # pyright: ignore[reportPrivateUsage]  # package-internal helpers
+)
 
 
 @mcp.tool()

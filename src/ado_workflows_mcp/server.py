@@ -4,7 +4,7 @@ from __future__ import annotations
 
 # Importing the tools package triggers @mcp.tool() registration for every
 # tool function re-exported via tools/__init__.py.
-import ado_workflows_mcp.tools as _tools  # noqa: F401
+import ado_workflows_mcp.tools as _tools  # noqa: F401  # pyright: ignore[reportUnusedImport]  # side-effect: registers @mcp.tool() handlers
 from ado_workflows_mcp.mcp_instance import mcp
 
 

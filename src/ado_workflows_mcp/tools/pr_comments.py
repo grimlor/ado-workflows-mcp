@@ -16,7 +16,9 @@ from ado_workflows.models import (  # noqa: TC002 — runtime for @mcp.tool() ou
 from ado_workflows.pr import establish_pr_context as _lib_establish_pr
 
 from ado_workflows_mcp.mcp_instance import mcp
-from ado_workflows_mcp.tools._helpers import _get_client
+from ado_workflows_mcp.tools._helpers import (
+    _get_client,  # pyright: ignore[reportPrivateUsage]  # package-internal helper
+)
 
 
 @mcp.tool()

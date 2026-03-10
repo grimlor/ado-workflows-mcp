@@ -8,7 +8,10 @@ from ado_workflows.models import CreatedPR  # noqa: TC002 — runtime for @mcp.t
 from ado_workflows.pr import AzureDevOpsPRContext, establish_pr_context as _lib_establish
 
 from ado_workflows_mcp.mcp_instance import mcp
-from ado_workflows_mcp.tools._helpers import _get_client, _get_context
+from ado_workflows_mcp.tools._helpers import (
+    _get_client,  # pyright: ignore[reportPrivateUsage]  # package-internal helpers
+    _get_context,  # pyright: ignore[reportPrivateUsage]  # package-internal helpers
+)
 
 
 @mcp.tool()

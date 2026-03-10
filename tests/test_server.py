@@ -15,7 +15,7 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import patch
 
-import ado_workflows_mcp.tools as _tools  # noqa: F401  # side-effect: registers tools
+import ado_workflows_mcp.tools as _tools  # noqa: F401  # pyright: ignore[reportUnusedImport]  # side-effect: registers tools
 from ado_workflows_mcp.mcp_instance import mcp
 from ado_workflows_mcp.server import main
 
