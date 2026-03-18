@@ -115,6 +115,13 @@ feat: add repository context caching with session persistence
 Common prefixes: `feat:`, `fix:`, `test:`, `docs:`, `build:`, `refactor:`,
 `style:`, `ci:`, `chore:`.
 
+## AI Coding Agent Setup
+
+This project uses [universal-dev-skills](https://github.com/grimlor/universal-dev-skills)
+for AI coding agent configuration (skills, instructions, and agents). Clone
+that repo and follow its README to configure your editor. No per-repo setup
+is required — the skills apply automatically across all workspaces.
+
 ## Pull Requests
 
 1. **Branch from `main`.**
