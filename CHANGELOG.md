@@ -2,6 +2,33 @@
 
 <!-- version list -->
 
+## v0.1.3 (2026-03-19)
+
+### Bug Fixes
+
+- **ci**: Use PAT for release push to bypass branch ruleset
+  ([`269f8e3`](https://github.com/grimlor/ado-workflows-mcp/commit/269f8e3619398086645ba11a0aa62ad91140d6f2))
+
+### Build System
+
+- Remove CI skill sync in favor of universal-dev-skills clone
+  ([`59cd8fe`](https://github.com/grimlor/ado-workflows-mcp/commit/59cd8fe0292adb93337435c74b347ae0482aef49))
+
+### Chores
+
+- Add format step to check task
+  ([`0afe6db`](https://github.com/grimlor/ado-workflows-mcp/commit/0afe6db29ac66070b4a18492aed73e68bc1d61d8))
+
+- Add license badge, normalize badge format
+  ([`7084bd4`](https://github.com/grimlor/ado-workflows-mcp/commit/7084bd422df76e419739e4f388a7ce19003bd7ea))
+
+- Add ruff per-file-ignores for test conventions
+  ([`2ba39ea`](https://github.com/grimlor/ado-workflows-mcp/commit/2ba39eab3cd76adf7789ee8034eb4e72ed5ef41e))
+
+- Cap requires-python, add pytest markers, normalize gitignore, add PUBLISHING.md, unify PR template
+  ([`1a9bdda`](https://github.com/grimlor/ado-workflows-mcp/commit/1a9bdda311777bdfd05ea20e28209422a5aca5b7))
+
+
 ## v0.1.2 (2026-03-10)
 
 ### Bug Fixes
