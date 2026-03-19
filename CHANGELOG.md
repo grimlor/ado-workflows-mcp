@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.2.0 (2026-03-19)
+
+### Build System
+
+- Add upload_to_pypi = false to align with other repos
+  ([`f061c59`](https://github.com/grimlor/ado-workflows-mcp/commit/f061c59b85b3d2d6682bbd77c8e2fddb19ce932a))
+
+### Features
+
+- **tools**: Add batch comment posting, file changes, and file contents tools
+  ([`9b1c898`](https://github.com/grimlor/ado-workflows-mcp/commit/9b1c898dd94b3afa2636bcb71591945061b0b1ce))
+
+
 ## v0.1.3 (2026-03-19)
 
 ### Bug Fixes
