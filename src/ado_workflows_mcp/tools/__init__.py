@@ -19,6 +19,10 @@ from ado_workflows_mcp.tools.pr_files import (
     get_pr_file_changes as get_pr_file_changes,
     get_pr_file_contents as get_pr_file_contents,
 )
+from ado_workflows_mcp.tools.pr_identity import (
+    get_current_user as get_current_user,
+    get_pr_author as get_pr_author,
+)
 from ado_workflows_mcp.tools.pr_review import (
     analyze_pending_reviews as analyze_pending_reviews,
     get_pr_review_status as get_pr_review_status,
@@ -40,6 +44,8 @@ __all__ = [
     "clear_repository_context",
     "create_pull_request",
     "establish_pr_context",
+    "get_current_user",
+    "get_pr_author",
     "get_pr_file_changes",
     "get_pr_file_contents",
     "get_pr_review_status",
