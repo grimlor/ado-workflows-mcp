@@ -11,8 +11,13 @@ import ado_workflows_mcp.tools._fixup_forward_refs as _fixup_forward_refs  # noq
 from ado_workflows_mcp.tools.pr_comments import (
     analyze_pr_comments as analyze_pr_comments,
     post_pr_comment as post_pr_comment,
+    post_pr_comments as post_pr_comments,
     reply_to_pr_comment as reply_to_pr_comment,
     resolve_pr_comments as resolve_pr_comments,
+)
+from ado_workflows_mcp.tools.pr_files import (
+    get_pr_file_changes as get_pr_file_changes,
+    get_pr_file_contents as get_pr_file_contents,
 )
 from ado_workflows_mcp.tools.pr_review import (
     analyze_pending_reviews as analyze_pending_reviews,
@@ -35,9 +40,12 @@ __all__ = [
     "clear_repository_context",
     "create_pull_request",
     "establish_pr_context",
+    "get_pr_file_changes",
+    "get_pr_file_contents",
     "get_pr_review_status",
     "get_repository_context_status",
     "post_pr_comment",
+    "post_pr_comments",
     "reply_to_pr_comment",
     "repository_discovery",
     "resolve_pr_comments",
