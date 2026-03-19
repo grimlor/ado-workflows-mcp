@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.3.0 (2026-03-19)
+
+### Features
+
+- **tools**: Add get_pr_author and get_current_user identity tools
+  ([`469ad22`](https://github.com/grimlor/ado-workflows-mcp/commit/469ad22291412f24b368451e33189c0ba3b15552))
+
+
 ## v0.2.0 (2026-03-19)
 
 ### Build System
