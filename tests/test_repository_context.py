@@ -1,4 +1,5 @@
-"""BDD tests for tools/repository_context.py — context management tools.
+"""
+BDD tests for tools/repository_context.py — context management tools.
 
 Covers:
 - TestSetRepositoryContext: caching repository context for the session

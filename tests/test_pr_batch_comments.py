@@ -1,4 +1,5 @@
-"""BDD tests for tools/pr_comments.py — batch comment posting with positioning.
+"""
+BDD tests for tools/pr_comments.py — batch comment posting with positioning.
 
 Covers:
 - TestPostPRComments: batch-post comments with file/line positioning

@@ -1,4 +1,5 @@
-"""Singleton FastMCP server instance.
+"""
+Singleton FastMCP server instance.
 
 All tool modules import ``mcp`` from here to register via ``@mcp.tool()``.
 Keeping the instance in its own module avoids circular imports between

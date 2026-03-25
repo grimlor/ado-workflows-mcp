@@ -1,4 +1,5 @@
-"""BDD tests for tools/pr_review.py — review status and pending review tools.
+"""
+BDD tests for tools/pr_review.py — review status and pending review tools.
 
 Covers:
 - TestGetPRReviewStatus: fetching comprehensive review status for a PR

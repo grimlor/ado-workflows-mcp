@@ -1,4 +1,5 @@
-"""Patch ado_workflows.models so pydantic can resolve forward references.
+"""
+Patch ado_workflows.models so pydantic can resolve forward references.
 
 The upstream ``models`` module guards ``ActionableError`` and ``datetime``
 behind ``TYPE_CHECKING``.  With ``from __future__ import annotations``,

@@ -15,7 +15,8 @@ from ado_workflows_mcp.mcp_instance import mcp
 def repository_discovery(
     working_directory: str | None = None,
 ) -> dict[str, Any] | ActionableError:
-    """Discover Azure DevOps repositories from local git remotes.
+    """
+    Discover Azure DevOps repositories from local git remotes.
 
     Scans the working directory (or cwd) for git repos, extracts ADO remote
     metadata, and selects the best match.
@@ -23,6 +24,7 @@ def repository_discovery(
     Args:
         working_directory: Path to scan. Defaults to the current working
             directory when omitted.
+
     """
     try:
         search_root = working_directory or os.getcwd()

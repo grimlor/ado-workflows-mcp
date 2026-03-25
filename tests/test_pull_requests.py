@@ -1,4 +1,5 @@
-"""BDD tests for tools/pull_requests.py — PR context and creation tools.
+"""
+BDD tests for tools/pull_requests.py — PR context and creation tools.
 
 Covers:
 - TestEstablishPRContext: resolving PR context from URL or numeric ID

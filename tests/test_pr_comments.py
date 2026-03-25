@@ -1,4 +1,5 @@
-"""BDD tests for tools/pr_comments.py — PR comment analysis and management.
+"""
+BDD tests for tools/pr_comments.py — PR comment analysis and management.
 
 Covers:
 - TestAnalyzePRComments: analyzing comment threads on a PR

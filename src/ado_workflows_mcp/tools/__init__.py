@@ -1,4 +1,5 @@
-"""MCP tool modules — explicit re-exports.
+"""
+MCP tool modules — explicit re-exports.
 
 Importing this package triggers ``@mcp.tool()`` registration for every
 tool function listed below.  Each sub-module decorates its functions

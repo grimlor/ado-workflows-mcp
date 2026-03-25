@@ -25,7 +25,8 @@ def get_pr_file_changes(
     *,
     working_directory: str | None = None,
 ) -> list[dict[str, Any]] | ActionableError:
-    """List files changed in a PR with iteration metadata.
+    """
+    List files changed in a PR with iteration metadata.
 
     Returns a list of dicts, each with keys: path, change_type,
     change_tracking_id, iteration_id.
@@ -35,6 +36,7 @@ def get_pr_file_changes(
     Args:
         pr_url_or_id: A full PR URL or numeric PR ID.
         working_directory: Optional path for context resolution.
+
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
@@ -86,7 +88,8 @@ def get_pr_file_contents(
     file_paths: list[str] | None = None,
     working_directory: str | None = None,
 ) -> list[dict[str, Any]] | ActionableError:
-    """Fetch file contents for files changed in a PR.
+    """
+    Fetch file contents for files changed in a PR.
 
     Returns a list of dicts, each with keys: path, content, encoding,
     size_bytes. Files that fail to fetch are omitted from successes and
@@ -98,6 +101,7 @@ def get_pr_file_contents(
         pr_url_or_id: A full PR URL or numeric PR ID.
         file_paths: Optional list of specific file paths to fetch.
         working_directory: Optional path for context resolution.
+
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)

@@ -1,4 +1,5 @@
-"""BDD tests for tools/repositories.py — repository discovery tool.
+"""
+BDD tests for tools/repositories.py — repository discovery tool.
 
 Covers:
 - TestRepositoryDiscovery: discovering ADO repos from local git remotes

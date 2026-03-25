@@ -29,7 +29,8 @@ def analyze_pr_comments(
     pr_url_or_id: str,
     working_directory: str | None = None,
 ) -> CommentAnalysis | ActionableError:
-    """Analyze all comment threads on a PR.
+    """
+    Analyze all comment threads on a PR.
 
     Fetches threads, categorizes by status, and extracts author
     statistics for a structured overview.
@@ -37,6 +38,7 @@ def analyze_pr_comments(
     Args:
         pr_url_or_id: A full PR URL or numeric PR ID.
         working_directory: Optional path for context resolution.
+
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
@@ -75,7 +77,8 @@ def post_pr_comment(
     status: str = "active",
     working_directory: str | None = None,
 ) -> int | ActionableError:
-    """Post a new comment thread to a PR.
+    """
+    Post a new comment thread to a PR.
 
     Creates a new comment thread with the specified content and status.
 
@@ -84,6 +87,7 @@ def post_pr_comment(
         comment_text: Comment body text.
         status: Thread status (default "active").
         working_directory: Optional path for context resolution.
+
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
@@ -128,7 +132,8 @@ def reply_to_pr_comment(
     comment_text: str,
     working_directory: str | None = None,
 ) -> int | ActionableError:
-    """Reply to an existing comment thread.
+    """
+    Reply to an existing comment thread.
 
     Adds a reply to a specific thread on a PR.
 
@@ -137,6 +142,7 @@ def reply_to_pr_comment(
         thread_id: Existing thread ID to reply to.
         comment_text: Reply body text.
         working_directory: Optional path for context resolution.
+
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
@@ -181,7 +187,8 @@ def resolve_pr_comments(
     status: str = "fixed",
     working_directory: str | None = None,
 ) -> ResolveResult | ActionableError:
-    """Batch-resolve PR comment threads.
+    """
+    Batch-resolve PR comment threads.
 
     Sets thread status to the target status for a list of thread IDs.
     Uses partial-success semantics — individual thread errors don't
@@ -192,6 +199,7 @@ def resolve_pr_comments(
         thread_ids: Thread IDs to resolve.
         status: Target thread status (default "fixed").
         working_directory: Optional path for context resolution.
+
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
@@ -235,7 +243,8 @@ def post_pr_comments(
     dry_run: bool = False,
     working_directory: str | None = None,
 ) -> PostingResult | ActionableError:
-    """Batch-post comments to a PR with optional file/line positioning.
+    """
+    Batch-post comments to a PR with optional file/line positioning.
 
     Each comment dict has keys:
         content: str           (required)
@@ -253,6 +262,7 @@ def post_pr_comments(
         comments: List of comment dicts to post.
         dry_run: If True, validate without posting.
         working_directory: Optional path for context resolution.
+
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)

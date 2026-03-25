@@ -1,4 +1,5 @@
-"""BDD tests for server.py — MCP server entry point.
+"""
+BDD tests for server.py — MCP server entry point.
 
 Covers:
 - TestServerEntryPoint: importing server module registers tools, main() runs server

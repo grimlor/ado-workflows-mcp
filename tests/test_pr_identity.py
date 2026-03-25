@@ -1,4 +1,5 @@
-"""BDD tests for tools/pr_identity.py — PR author and current user identity.
+"""
+BDD tests for tools/pr_identity.py — PR author and current user identity.
 
 Covers:
 - TestGetPRAuthor: retrieve PR creator identity

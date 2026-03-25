@@ -24,7 +24,8 @@ def get_pr_review_status(
     pr_id: int,
     working_directory: str | None = None,
 ) -> ReviewStatus | ActionableError:
-    """Get comprehensive review status with vote invalidation detection.
+    """
+    Get comprehensive review status with vote invalidation detection.
 
     Fetches PR details, reviewer votes, commit history, and detects
     stale approvals that the raw API buries.
@@ -32,6 +33,7 @@ def get_pr_review_status(
     Args:
         pr_id: Pull request ID.
         working_directory: Optional path for context resolution.
+
     """
     try:
         ctx = _get_context(working_directory)
@@ -72,7 +74,8 @@ def analyze_pending_reviews(
     creator_filter: str | None = None,
     working_directory: str | None = None,
 ) -> PendingReviewResult | ActionableError:
-    """Discover PRs needing review attention across a repository.
+    """
+    Discover PRs needing review attention across a repository.
 
     Lists active PRs, filters by age and creator, and enriches each
     with staleness detection data.
@@ -81,6 +84,7 @@ def analyze_pending_reviews(
         max_days_old: Exclude PRs older than this many days. Default 30.
         creator_filter: Optional substring match on PR creator.
         working_directory: Optional path for context resolution.
+
     """
     try:
         ctx = _get_context(working_directory)

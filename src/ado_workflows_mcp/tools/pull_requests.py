@@ -19,7 +19,8 @@ def establish_pr_context(
     pr_url_or_id: str,
     working_directory: str | None = None,
 ) -> AzureDevOpsPRContext | ActionableError:
-    """Create reusable PR context from a URL or numeric ID.
+    """
+    Create reusable PR context from a URL or numeric ID.
 
     Parses a full PR URL or resolves a numeric PR ID using
     cached repository context.
@@ -28,6 +29,7 @@ def establish_pr_context(
         pr_url_or_id: A full Azure DevOps PR URL or a numeric PR ID.
         working_directory: Optional path for context resolution when
             using a numeric ID.
+
     """
     try:
         return _lib_establish(pr_url_or_id, working_directory=working_directory)
@@ -67,7 +69,8 @@ def create_pull_request(
     is_draft: bool = False,
     working_directory: str | None = None,
 ) -> CreatedPR | ActionableError:
-    """Create a new pull request via the Azure DevOps SDK.
+    """
+    Create a new pull request via the Azure DevOps SDK.
 
     Constructs a PR from branch names with optional title, description,
     and draft mode.
@@ -79,6 +82,7 @@ def create_pull_request(
         description: Optional PR description.
         is_draft: Whether to create as a draft PR.
         working_directory: Optional path for context resolution.
+
     """
     try:
         ctx = _get_context(working_directory)

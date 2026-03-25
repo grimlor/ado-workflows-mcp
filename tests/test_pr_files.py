@@ -1,4 +1,5 @@
-"""BDD tests for tools/pr_files.py — PR file changes and content fetching.
+"""
+BDD tests for tools/pr_files.py — PR file changes and content fetching.
 
 Covers:
 - TestGetPRFileChanges: list files changed in a PR with iteration metadata

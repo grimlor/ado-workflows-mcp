@@ -21,7 +21,8 @@ def get_pr_author(
     pr_url_or_id: str,
     working_directory: str | None = None,
 ) -> UserIdentity | ActionableError:
-    """Get the identity of a PR's creator.
+    """
+    Get the identity of a PR's creator.
 
     Returns the display name, GUID, and email of the user who created
     the pull request.
@@ -29,6 +30,7 @@ def get_pr_author(
     Args:
         pr_url_or_id: A full PR URL or numeric PR ID.
         working_directory: Optional path for context resolution.
+
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
@@ -63,7 +65,8 @@ def get_pr_author(
 def get_current_user(
     working_directory: str | None = None,
 ) -> UserIdentity | ActionableError:
-    """Get the identity of the authenticated user.
+    """
+    Get the identity of the authenticated user.
 
     Returns the display name and GUID of the user whose credentials
     are active for Azure DevOps operations. Useful for self-praise
@@ -71,6 +74,7 @@ def get_current_user(
 
     Args:
         working_directory: Optional path for context resolution.
+
     """
     try:
         client = _get_client(working_directory)

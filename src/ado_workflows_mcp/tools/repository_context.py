@@ -18,13 +18,15 @@ from ado_workflows_mcp.mcp_instance import mcp
 def set_repository_context(
     working_directory: str,
 ) -> dict[str, Any] | ActionableError:
-    """Cache repository context for the session.
+    """
+    Cache repository context for the session.
 
     Sets the working directory and caches discovery results so
     subsequent tool calls skip redundant git CLI lookups.
 
     Args:
         working_directory: Path to the git repository root.
+
     """
     try:
         return _lib_set(working_directory)
@@ -56,7 +58,8 @@ def set_repository_context(
 
 @mcp.tool()
 def get_repository_context_status() -> dict[str, Any] | ActionableError:
-    """Inspect current cached context state.
+    """
+    Inspect current cached context state.
 
     Returns cache state, timestamps, and working directory details.
     Useful for agents debugging context issues or verifying setup.
@@ -89,7 +92,8 @@ def get_repository_context_status() -> dict[str, Any] | ActionableError:
 
 @mcp.tool()
 def clear_repository_context() -> dict[str, Any] | ActionableError:
-    """Reset cached context.
+    """
+    Reset cached context.
 
     Clears cached discovery results, forcing fresh discovery on
     the next tool call. Idempotent — safe to call even when no
