@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.2 (2026-03-27)
+
+### Bug Fixes
+
+- **tools**: Derive org_url from PR context instead of repo context
+  ([`ffadcf4`](https://github.com/grimlor/ado-workflows-mcp/commit/ffadcf4b5783f01170328d93c8a0ff82def624d7))
+
+
 ## v0.4.1 (2026-03-27)
 
 ### Bug Fixes

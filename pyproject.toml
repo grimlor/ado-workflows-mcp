@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ado-workflows-mcp"
-version = "0.4.1"
+version = "0.4.2"
 description = "MCP server exposing Azure DevOps workflow automation tools"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
