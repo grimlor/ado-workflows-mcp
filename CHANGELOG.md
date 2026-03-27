@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.4.0 (2026-03-27)
+
+### Chores
+
+- **lint**: Add pydocstyle rules and fix docstring issues
+  ([`313c6be`](https://github.com/grimlor/ado-workflows-mcp/commit/313c6bed3527ad2bb77ca55ad726b9f82a6fe1f4))
+
+### Features
+
+- **pr_files**: Expose exclude_extensions parameter in get_pr_file_contents
+  ([`5ccf746`](https://github.com/grimlor/ado-workflows-mcp/commit/5ccf746083c3d33358d9f414470d32ff3ba21901))
+
+
 ## v0.3.0 (2026-03-19)
 
 ### Features
