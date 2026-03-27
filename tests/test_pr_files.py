@@ -8,14 +8,14 @@ Covers:
 Public API surface (from src/ado_workflows_mcp/tools/pr_files.py):
     get_pr_file_changes(pr_url_or_id, *, working_directory)
         -> list[dict] | ActionableError
-    get_pr_file_contents(pr_url_or_id, *, file_paths, working_directory)
-        -> list[dict] | ActionableError
+    get_pr_file_contents(pr_url_or_id, *, file_paths, exclude_extensions,
+        working_directory) -> list[dict] | ActionableError
 
 Library API surface:
     ado_workflows.iterations.get_latest_iteration_context(client, repository,
         pr_id, project) -> IterationContext
     ado_workflows.content.get_changed_file_contents(client, repository, pr_id,
-        project, *, file_paths) -> ContentResult
+        project, *, file_paths, exclude_extensions) -> ContentResult
     ado_workflows.pr.establish_pr_context(url_or_id, working_directory)
         -> AzureDevOpsPRContext
 
@@ -264,10 +264,11 @@ class TestGetPRFileContents:
     WHAT: (1) a valid PR URL returns a list of file content dicts with
               path, content, encoding, and size_bytes
           (2) specific file_paths limits which files are fetched
-          (3) a file that fails to fetch is omitted from success results
+          (3) exclude_extensions filters out files by extension before fetch
+          (4) a file that fails to fetch is omitted from success results
               and the failure carries ai_guidance for recovery
-          (4) an invalid PR URL returns ActionableError
-          (5) an unexpected non-ActionableError exception returns
+          (5) an invalid PR URL returns ActionableError
+          (6) an unexpected non-ActionableError exception returns
               ActionableError.internal with ai_guidance
     WHY: Enables code analysis without a local checkout.
 
@@ -369,6 +370,65 @@ class TestGetPRFileContents:
         if len(result) > 0:
             paths = [r["path"] for r in result]
             assert "/src/utils.py" in paths, f"Expected /src/utils.py in results, got {paths}"
+
+    def test_exclude_extensions_filters_files(self, tmp_path: Any) -> None:
+        """
+        Given a PR with .py and .png files
+        When get_pr_file_contents is called with exclude_extensions=[".png"]
+        Then .png files are excluded from the results
+        """
+        # Given: context is set
+        _setup_context(tmp_path)
+
+        mock_factory = _mock_connection_factory()
+        with (
+            patch(_CONN_FACTORY_PATCH, mock_factory),
+            patch(_ADO_CLIENT_PATCH) as mock_ado_client_cls,
+        ):
+            mock_client = Mock()
+            pr_mock = MagicMock()
+            pr_mock.source_ref_name = "refs/heads/feature/x"
+            pr_mock.last_merge_source_commit = MagicMock(commit_id="abc123")
+            mock_client.git.get_pull_request_by_id.return_value = pr_mock
+            # Iterations with two files: one .py, one .png
+            iter_mock = MagicMock()
+            iter_mock.id = 1
+            iter_mock.created_date = "2026-03-18T00:00:00Z"
+            iter_mock.source_ref_commit = MagicMock(commit_id="abc123")
+            iter_mock.target_ref_commit = MagicMock(commit_id="def456")
+            mock_client.git.get_pull_request_iterations.return_value = [iter_mock]
+            change_py = MagicMock()
+            change_py.additional_properties = {
+                "item": {"path": "/src/main.py"},
+                "changeType": "edit",
+            }
+            change_py.change_tracking_id = 1
+            change_png = MagicMock()
+            change_png.additional_properties = {
+                "item": {"path": "/assets/logo.png"},
+                "changeType": "add",
+            }
+            change_png.change_tracking_id = 2
+            changes_response = MagicMock()
+            changes_response.change_entries = [change_py, change_png]
+            mock_client.git.get_pull_request_iteration_changes.return_value = changes_response
+            # File content — only .py should be fetched
+            mock_client.git.get_item_content.return_value = iter([b"def main():\n    pass\n"])
+            mock_ado_client_cls.return_value = mock_client
+
+            # When: called with exclude_extensions
+            result = get_pr_file_contents(
+                pr_url_or_id=_PR_URL,
+                exclude_extensions=[".png"],
+            )
+
+        # Then: only the .py file is in results
+        assert isinstance(result, list), f"Expected list, got {type(result).__name__}: {result}"
+        paths = [r["path"] for r in result if "content" in r]
+        assert any(p.endswith(".py") for p in paths), f"Expected .py file in results, got {paths}"
+        assert not any(p.endswith(".png") for p in paths), (
+            f"Expected .png file excluded from results, got {paths}"
+        )
 
     def test_missing_file_omitted_from_results(self, tmp_path: Any) -> None:
         """

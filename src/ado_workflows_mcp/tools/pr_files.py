@@ -86,6 +86,7 @@ def get_pr_file_contents(
     pr_url_or_id: str,
     *,
     file_paths: list[str] | None = None,
+    exclude_extensions: list[str] | None = None,
     working_directory: str | None = None,
 ) -> list[dict[str, Any]] | ActionableError:
     """
@@ -100,6 +101,8 @@ def get_pr_file_contents(
     Args:
         pr_url_or_id: A full PR URL or numeric PR ID.
         file_paths: Optional list of specific file paths to fetch.
+        exclude_extensions: Optional list of file extensions to skip
+            (e.g. [".png", ".lock"]). Case-insensitive; leading dot optional.
         working_directory: Optional path for context resolution.
 
     """
@@ -112,6 +115,7 @@ def get_pr_file_contents(
             pr_id=pr_ctx.pr_id,
             project=pr_ctx.project,
             file_paths=file_paths,
+            exclude_extensions=exclude_extensions,
         )
 
         # Serialize successes
