@@ -40,7 +40,7 @@ def get_pr_file_changes(
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
-        client = _get_client(working_directory)
+        client = _get_client(working_directory, org_url=pr_ctx.org_url)
         ctx = _lib_iteration_ctx(
             client,
             repository=pr_ctx.repository,
@@ -108,7 +108,7 @@ def get_pr_file_contents(
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
-        client = _get_client(working_directory)
+        client = _get_client(working_directory, org_url=pr_ctx.org_url)
         result: ContentResult = _lib_contents(
             client,
             repository=pr_ctx.repository,

@@ -34,7 +34,7 @@ def get_pr_author(
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
-        client = _get_client(working_directory)
+        client = _get_client(working_directory, org_url=pr_ctx.org_url)
         return _lib_pr_author(
             client,
             pr_id=pr_ctx.pr_id,

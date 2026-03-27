@@ -21,15 +21,20 @@ def _get_context(working_directory: str | None = None) -> dict[str, Any]:
     return RepositoryContext.get(working_directory=working_directory)
 
 
-def _get_client(working_directory: str | None = None) -> AdoClient:  # pyright: ignore[reportUnusedFunction]  # called by sibling tool modules
+def _get_client(  # pyright: ignore[reportUnusedFunction]  # called by sibling tool modules
+    working_directory: str | None = None,
+    *,
+    org_url: str | None = None,
+) -> AdoClient:
     """
-    Build an authenticated AdoClient from repository context.
+    Build an authenticated AdoClient.
 
-    Resolves the organisation URL from cache (or *working_directory*),
-    then constructs a :class:`~ado_workflows.client.AdoClient` using
-    :class:`~ado_workflows.auth.ConnectionFactory`.
+    When *org_url* is supplied (e.g. from a parsed PR context), it is used
+    directly.  Otherwise the organisation URL is resolved from the cached
+    repository context (or *working_directory*).
     """
-    ctx = _get_context(working_directory)
-    org_url = ctx.get("org_url") or f"https://dev.azure.com/{ctx['organization']}"
-    connection = ConnectionFactory().get_connection(org_url)
+    if not org_url:
+        ctx = _get_context(working_directory)
+        org_url = ctx.get("org_url") or f"https://dev.azure.com/{ctx['organization']}"
+    connection = ConnectionFactory().get_connection(str(org_url))
     return AdoClient(connection)

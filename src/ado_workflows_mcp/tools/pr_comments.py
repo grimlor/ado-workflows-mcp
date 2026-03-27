@@ -42,7 +42,7 @@ def analyze_pr_comments(
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
-        client = _get_client(working_directory)
+        client = _get_client(working_directory, org_url=pr_ctx.org_url)
         return _lib_analyze(
             client,
             pr_id=pr_ctx.pr_id,
@@ -91,7 +91,7 @@ def post_pr_comment(
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
-        client = _get_client(working_directory)
+        client = _get_client(working_directory, org_url=pr_ctx.org_url)
         return _lib_post(
             client,
             repository=pr_ctx.repository,
@@ -146,7 +146,7 @@ def reply_to_pr_comment(
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
-        client = _get_client(working_directory)
+        client = _get_client(working_directory, org_url=pr_ctx.org_url)
         return _lib_reply(
             client,
             repository=pr_ctx.repository,
@@ -203,7 +203,7 @@ def resolve_pr_comments(
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
-        client = _get_client(working_directory)
+        client = _get_client(working_directory, org_url=pr_ctx.org_url)
         return _lib_resolve(
             client,
             repository=pr_ctx.repository,
@@ -266,7 +266,7 @@ def post_pr_comments(
     """
     try:
         pr_ctx = _lib_establish_pr(pr_url_or_id, working_directory=working_directory)
-        client = _get_client(working_directory)
+        client = _get_client(working_directory, org_url=pr_ctx.org_url)
 
         # Convert dicts to CommentPayload, collecting validation failures
         payloads: list[CommentPayload] = []
