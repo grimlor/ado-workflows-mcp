@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.4.1 (2026-03-27)
+
+### Bug Fixes
+
+- **deps**: Require ado-workflows>=0.3.0 for exclude_extensions
+  ([`28e8d22`](https://github.com/grimlor/ado-workflows-mcp/commit/28e8d22f95bcccc4a4dbae1a0c31a13e4b4599b1))
+
+
 ## v0.4.0 (2026-03-27)
 
 ### Chores
