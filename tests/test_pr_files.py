@@ -224,19 +224,19 @@ class TestGetPRFileChanges:
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
         """
-        Given an unexpected non-ActionableError exception
+        Given an unexpected exception at the I/O boundary
         When get_pr_file_changes is called
         Then returns ActionableError.internal with ai_guidance
         """
-        # Given: context is set
+        # Given: context is set, but ConnectionFactory raises
         _setup_context(tmp_path)
 
-        # Given: establish_pr_context raises a non-ActionableError
-        with patch(
-            "ado_workflows_mcp.tools.pr_files._lib_establish_pr",
-            side_effect=RuntimeError("unexpected crash"),
-        ):
-            # When: called
+        mock_factory = MagicMock()
+        mock_factory.return_value.get_connection.side_effect = RuntimeError(
+            "unexpected crash",
+        )
+        with patch(_CONN_FACTORY_PATCH, mock_factory):
+            # When: called with valid PR URL (URL parsing succeeds, get_client fails)
             result = get_pr_file_changes(pr_url_or_id=_PR_URL)
 
         # Then: returns ActionableError with ai_guidance
@@ -502,19 +502,19 @@ class TestGetPRFileContents:
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
         """
-        Given an unexpected non-ActionableError exception
+        Given an unexpected exception at the I/O boundary
         When get_pr_file_contents is called
         Then returns ActionableError.internal with ai_guidance
         """
-        # Given: context is set
+        # Given: context is set, but ConnectionFactory raises
         _setup_context(tmp_path)
 
-        # Given: establish_pr_context raises a non-ActionableError
-        with patch(
-            "ado_workflows_mcp.tools.pr_files._lib_establish_pr",
-            side_effect=RuntimeError("unexpected crash"),
-        ):
-            # When: called
+        mock_factory = MagicMock()
+        mock_factory.return_value.get_connection.side_effect = RuntimeError(
+            "unexpected crash",
+        )
+        with patch(_CONN_FACTORY_PATCH, mock_factory):
+            # When: called with valid PR URL
             result = get_pr_file_contents(pr_url_or_id=_PR_URL)
 
         # Then: returns ActionableError with ai_guidance

@@ -217,27 +217,15 @@ class TestAnalyzePRComments:
             f"ai_guidance should mention credentials or PR, got: {guidance}"
         )
 
-    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
         """
-        Given the library raises ActionableError without ai_guidance
+        Given input that the library rejects with ActionableError (ai_guidance=None)
         When analyze_pr_comments is called
         Then returns the error with ai_guidance enriched
         """
-        # Given: context is set
-        _setup_context(tmp_path)
-
-        # Given: establish_pr_context raises ActionableError without ai_guidance
-        bare_error = ActionableError(
-            error="PR not found",
-            error_type="NOT_FOUND",
-            service="ado-workflows",
-        )
-        with patch(
-            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
-            side_effect=bare_error,
-        ):
-            # When: called
-            result = analyze_pr_comments(pr_url_or_id=_PR_URL)
+        # When: called with a non-URL, non-numeric string
+        # Real establish_pr_context raises ActionableError.validation (ai_guidance=None)
+        result = analyze_pr_comments(pr_url_or_id="not-a-valid-id")
 
         # Then: returns ActionableError with ai_guidance enriched
         assert isinstance(result, ActionableError), (
@@ -365,30 +353,17 @@ class TestPostPRComment:
             f"ai_guidance should mention credentials or access, got: {guidance}"
         )
 
-    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
         """
-        Given the library raises ActionableError without ai_guidance
+        Given input that the library rejects with ActionableError (ai_guidance=None)
         When post_pr_comment is called
         Then returns the error with ai_guidance enriched
         """
-        # Given: context is set
-        _setup_context(tmp_path)
-
-        # Given: establish_pr_context raises ActionableError without ai_guidance
-        bare_error = ActionableError(
-            error="Auth expired",
-            error_type="AUTHENTICATION",
-            service="ado-workflows",
+        # When: called with a non-URL, non-numeric string
+        result = post_pr_comment(
+            pr_url_or_id="not-a-valid-id",
+            comment_text="LGTM!",
         )
-        with patch(
-            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
-            side_effect=bare_error,
-        ):
-            # When: called
-            result = post_pr_comment(
-                pr_url_or_id=_PR_URL,
-                comment_text="LGTM!",
-            )
 
         # Then: returns ActionableError with ai_guidance enriched
         assert isinstance(result, ActionableError), (
@@ -404,19 +379,19 @@ class TestPostPRComment:
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
         """
-        Given the library raises an unexpected Exception
+        Given an unexpected exception at the I/O boundary
         When post_pr_comment is called
         Then returns ActionableError.internal with ai_guidance
         """
-        # Given: context is set
+        # Given: context is set, but ConnectionFactory raises
         _setup_context(tmp_path)
 
-        # Given: establish_pr_context raises a raw exception
-        with patch(
-            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
-            side_effect=RuntimeError("connection pool exhausted"),
-        ):
-            # When: called
+        mock_factory = MagicMock()
+        mock_factory.return_value.get_connection.side_effect = RuntimeError(
+            "connection pool exhausted",
+        )
+        with patch(_CONN_FACTORY_PATCH, mock_factory):
+            # When: called with valid PR URL (URL parsing succeeds, get_client fails)
             result = post_pr_comment(
                 pr_url_or_id=_PR_URL,
                 comment_text="LGTM!",
@@ -566,31 +541,18 @@ class TestReplyToPRComment:
             f"ai_guidance should suggest verification, got: {guidance}"
         )
 
-    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
         """
-        Given the library raises ActionableError without ai_guidance
+        Given input that the library rejects with ActionableError (ai_guidance=None)
         When reply_to_pr_comment is called
         Then returns the error with ai_guidance enriched
         """
-        # Given: context is set
-        _setup_context(tmp_path)
-
-        # Given: establish_pr_context raises ActionableError without ai_guidance
-        bare_error = ActionableError(
-            error="Thread not found",
-            error_type="NOT_FOUND",
-            service="ado-workflows",
+        # When: called with a non-URL, non-numeric string
+        result = reply_to_pr_comment(
+            pr_url_or_id="not-a-valid-id",
+            thread_id=10,
+            comment_text="reply",
         )
-        with patch(
-            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
-            side_effect=bare_error,
-        ):
-            # When: called
-            result = reply_to_pr_comment(
-                pr_url_or_id=_PR_URL,
-                thread_id=10,
-                comment_text="reply",
-            )
 
         # Then: returns ActionableError with ai_guidance enriched
         assert isinstance(result, ActionableError), (
@@ -606,19 +568,19 @@ class TestReplyToPRComment:
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
         """
-        Given the library raises an unexpected Exception
+        Given an unexpected exception at the I/O boundary
         When reply_to_pr_comment is called
         Then returns ActionableError.internal with ai_guidance
         """
-        # Given: context is set
+        # Given: context is set, but ConnectionFactory raises
         _setup_context(tmp_path)
 
-        # Given: establish_pr_context raises a raw exception
-        with patch(
-            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
-            side_effect=RuntimeError("socket timeout"),
-        ):
-            # When: called
+        mock_factory = MagicMock()
+        mock_factory.return_value.get_connection.side_effect = RuntimeError(
+            "socket timeout",
+        )
+        with patch(_CONN_FACTORY_PATCH, mock_factory):
+            # When: called with valid PR URL
             result = reply_to_pr_comment(
                 pr_url_or_id=_PR_URL,
                 thread_id=10,
@@ -804,30 +766,17 @@ class TestResolvePRComments:
             f"ai_guidance should suggest verification, got: {guidance}"
         )
 
-    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
         """
-        Given the library raises ActionableError without ai_guidance
+        Given input that the library rejects with ActionableError (ai_guidance=None)
         When resolve_pr_comments is called
         Then returns the error with ai_guidance enriched
         """
-        # Given: context is set
-        _setup_context(tmp_path)
-
-        # Given: establish_pr_context raises ActionableError without ai_guidance
-        bare_error = ActionableError(
-            error="PR archived",
-            error_type="NOT_FOUND",
-            service="ado-workflows",
+        # When: called with a non-URL, non-numeric string
+        result = resolve_pr_comments(
+            pr_url_or_id="not-a-valid-id",
+            thread_ids=[1, 2],
         )
-        with patch(
-            "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
-            side_effect=bare_error,
-        ):
-            # When: called
-            result = resolve_pr_comments(
-                pr_url_or_id=_PR_URL,
-                thread_ids=[1, 2],
-            )
 
         # Then: returns ActionableError with ai_guidance enriched
         assert isinstance(result, ActionableError), (

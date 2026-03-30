@@ -150,18 +150,19 @@ class TestGetPRAuthor:
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
         """
-        Given an unexpected non-ActionableError exception
+        Given an unexpected non-ActionableError exception at the I/O boundary
         When get_pr_author is called
         Then returns ActionableError.internal with ai_guidance
         """
-        # Given: context is set
+        # Given: context is set, but ConnectionFactory.get_connection raises
         _setup_context(tmp_path)
 
-        with patch(
-            "ado_workflows_mcp.tools.pr_identity._lib_establish_pr",
-            side_effect=RuntimeError("unexpected crash"),
-        ):
-            # When: called
+        mock_factory = MagicMock()
+        mock_factory.return_value.get_connection.side_effect = RuntimeError(
+            "unexpected crash",
+        )
+        with patch(_CONN_FACTORY_PATCH, mock_factory):
+            # When: called (establish_pr_context parses URL, then get_client fails)
             result = get_pr_author(pr_url_or_id=_PR_URL)
 
         # Then: returns ActionableError with ai_guidance
@@ -188,7 +189,8 @@ class TestGetCurrentUser:
     WHO: Code review tools needing identity for self-praise filtering,
          commit attribution, or permission checks.
     WHAT: (1) authenticated context returns UserIdentity with display_name and id
-          (2) an auth failure returns ActionableError with ai_guidance
+          (2) an SDK auth failure returns ActionableError produced by the
+              library's real error handling chain
           (3) an unexpected exception returns ActionableError.internal with
               ai_guidance
     WHY: Enables identity-aware workflows without requiring the consumer
@@ -240,52 +242,52 @@ class TestGetCurrentUser:
 
     def test_auth_failure_returns_actionable_error(self, tmp_path: Any) -> None:
         """
-        Given the library raises ActionableError during authentication
+        Given the SDK raises an auth failure during get_connection_data
         When get_current_user is called
-        Then returns the ActionableError to the caller
+        Then returns ActionableError produced by the library's real error handling
         """
-        # Given: context is set and _lib_current_user raises ActionableError
+        # Given: context is set, SDK auth call fails
         _setup_context(tmp_path)
 
-        auth_error = ActionableError(
-            error="Token expired",
-            error_type="AUTHENTICATION",
-            service="ado-workflows",
-        )
+        mock_factory = _mock_connection_factory()
         with (
-            patch(
-                "ado_workflows_mcp.tools.pr_identity.get_client",
-                return_value=Mock(),
-            ),
-            patch(
-                "ado_workflows_mcp.tools.pr_identity._lib_current_user",
-                side_effect=auth_error,
-            ),
+            patch(_CONN_FACTORY_PATCH, mock_factory),
+            patch(_ADO_CLIENT_PATCH) as mock_ado_client_cls,
         ):
-            # When: called
-            result = get_current_user(working_directory=str(tmp_path))
+            mock_client = Mock()
+            mock_client.location.get_connection_data.side_effect = Exception(
+                "Token expired",
+            )
+            mock_ado_client_cls.return_value = mock_client
 
-        # Then: returns ActionableError
+            # When: called — real _lib_current_user catches SDK error,
+            # raises ActionableError, tool's except handler returns it
+            result = get_current_user()
+
+        # Then: returns ActionableError with auth details from the library
         assert isinstance(result, ActionableError), (
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
-        assert result is auth_error, "Expected the same ActionableError instance"
+        assert "Token expired" in result.error, (
+            f"Expected 'Token expired' in error, got: {result.error}"
+        )
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
         """
-        Given an unexpected non-ActionableError exception
+        Given an unexpected non-ActionableError exception at the I/O boundary
         When get_current_user is called
         Then returns ActionableError.internal with ai_guidance
         """
-        # Given: context is set
+        # Given: context is set, but ConnectionFactory.get_connection raises
         _setup_context(tmp_path)
 
-        with patch(
-            "ado_workflows_mcp.tools.pr_identity.get_client",
-            side_effect=RuntimeError("unexpected crash"),
-        ):
+        mock_factory = MagicMock()
+        mock_factory.return_value.get_connection.side_effect = RuntimeError(
+            "unexpected crash",
+        )
+        with patch(_CONN_FACTORY_PATCH, mock_factory):
             # When: called
-            result = get_current_user(working_directory=str(tmp_path))
+            result = get_current_user()
 
         # Then: returns ActionableError with ai_guidance
         assert isinstance(result, ActionableError), (

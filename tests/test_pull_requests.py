@@ -194,22 +194,13 @@ class TestEstablishPRContext:
 
     def test_actionable_error_without_guidance_gets_enriched(self) -> None:
         """
-        Given the library raises ActionableError without ai_guidance
+        Given input that the library rejects with ActionableError (ai_guidance=None)
         When establish_pr_context is called
         Then returns the error with ai_guidance enriched
         """
-        # Given: library raises ActionableError with no ai_guidance
-        bare_error = ActionableError(
-            error="Context resolution failed",
-            error_type="VALIDATION",
-            service="ado-workflows",
-        )
-        with patch(
-            "ado_workflows_mcp.tools.pull_requests._lib_establish",
-            side_effect=bare_error,
-        ):
-            # When: called
-            result = establish_pr_context(pr_url_or_id="42")
+        # When: called with a non-URL, non-numeric string
+        # Real establish_pr_context raises ActionableError.validation (ai_guidance=None)
+        result = establish_pr_context(pr_url_or_id="not-a-valid-id")
 
         # Then: returns ActionableError with ai_guidance enriched
         assert isinstance(result, ActionableError), (
@@ -223,19 +214,24 @@ class TestEstablishPRContext:
             f"ai_guidance should mention PR/context/URL, got: {guidance}"
         )
 
-    def test_unexpected_exception_returns_internal_error(self) -> None:
+    def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
         """
-        Given the library raises an unexpected Exception
+        Given an unexpected exception at the I/O boundary
         When establish_pr_context is called
         Then returns ActionableError.internal with ai_guidance
         """
-        # Given: library function raises a raw exception
+        # Given: .git dir exists so discovery enters inspect_git_repository,
+        # but subprocess.run raises an unexpected RuntimeError
+        (tmp_path / ".git").mkdir()
         with patch(
-            "ado_workflows_mcp.tools.pull_requests._lib_establish",
+            _SUBPROCESS_PATCH,
             side_effect=RuntimeError("unexpected parse error"),
         ):
-            # When: called
-            result = establish_pr_context(pr_url_or_id="42")
+            # When: called with numeric ID (triggers context discovery)
+            result = establish_pr_context(
+                pr_url_or_id="42",
+                working_directory=str(tmp_path),
+            )
 
         # Then: returns ActionableError with internal error details
         assert isinstance(result, ActionableError), (
