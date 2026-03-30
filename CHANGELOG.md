@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v0.5.0 (2026-03-30)
+
+### Features
+
+- **tools**: Add post_rich_comments MCP tool\n\n- Add post_rich_comments tool with string-to-enum
+  coercion at MCP boundary\n- Bump ado-workflows dependency to >=0.4.0 (PyPI release with rich
+  models)\n- Add 11 BDD tests covering coercion, validation, error handling\n- Remove dead
+  enrichment branch in get_current_user (pr_identity)\n- Rename _get_client/_get_context to
+  get_client/get_context — module name\n _helpers.py is the visibility boundary, not function
+  prefixes\n- Update _helpers.py docstring to document naming convention\n- 100% coverage maintained
+  (334 stmts, 0 missed, 93 tests)
+  ([`0f16164`](https://github.com/grimlor/ado-workflows-mcp/commit/0f16164458a93168b92502a680f78693f805e314))
+
+
 ## v0.4.2 (2026-03-27)
 
 ### Bug Fixes
