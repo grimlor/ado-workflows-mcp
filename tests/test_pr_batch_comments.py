@@ -346,7 +346,7 @@ class TestPostPRComments:
         # Given: context is set
         _setup_context(tmp_path)
 
-        # Given: _get_client raises an unexpected exception
+        # Given: get_client raises an unexpected exception
         with patch(
             "ado_workflows_mcp.tools.pr_comments._lib_establish_pr",
             side_effect=RuntimeError("unexpected crash"),

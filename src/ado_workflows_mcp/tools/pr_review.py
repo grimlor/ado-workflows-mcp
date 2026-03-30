@@ -14,8 +14,8 @@ from ado_workflows.review import (
 
 from ado_workflows_mcp.mcp_instance import mcp
 from ado_workflows_mcp.tools._helpers import (
-    _get_client,  # pyright: ignore[reportPrivateUsage]  # package-internal helpers
-    _get_context,  # pyright: ignore[reportPrivateUsage]  # package-internal helpers
+    get_client,
+    get_context,
 )
 
 
@@ -36,8 +36,8 @@ def get_pr_review_status(
 
     """
     try:
-        ctx = _get_context(working_directory)
-        client = _get_client(working_directory)
+        ctx = get_context(working_directory)
+        client = get_client(working_directory)
         return _lib_review(
             client,
             pr_id=pr_id,
@@ -87,8 +87,8 @@ def analyze_pending_reviews(
 
     """
     try:
-        ctx = _get_context(working_directory)
-        client = _get_client(working_directory)
+        ctx = get_context(working_directory)
+        client = get_client(working_directory)
         return _lib_analyze(
             client,
             project=ctx["project"],

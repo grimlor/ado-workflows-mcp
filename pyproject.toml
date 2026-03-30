@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ado-workflows>=0.3.0",
+    "ado-workflows>=0.4.0",
     "fastmcp>=2.0.0",
 ]
 

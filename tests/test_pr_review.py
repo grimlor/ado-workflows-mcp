@@ -241,14 +241,14 @@ class TestGetPRReviewStatus:
         # Given: context is set
         _setup_context(tmp_path)
 
-        # Given: _get_context raises ActionableError without ai_guidance
+        # Given: get_context raises ActionableError without ai_guidance
         bare_error = ActionableError(
             error="Context stale",
             error_type="VALIDATION",
             service="ado-workflows",
         )
         with patch(
-            "ado_workflows_mcp.tools.pr_review._get_context",
+            "ado_workflows_mcp.tools.pr_review.get_context",
             side_effect=bare_error,
         ):
             # When: called
@@ -274,7 +274,7 @@ class TestGetPRReviewStatus:
         """
         # Given: context helper raises a raw exception
         with patch(
-            "ado_workflows_mcp.tools.pr_review._get_context",
+            "ado_workflows_mcp.tools.pr_review.get_context",
             side_effect=RuntimeError("cache corrupted"),
         ):
             # When: called
@@ -459,14 +459,14 @@ class TestAnalyzePendingReviews:
         # Given: context is set
         _setup_context(tmp_path)
 
-        # Given: _get_context raises ActionableError without ai_guidance
+        # Given: get_context raises ActionableError without ai_guidance
         bare_error = ActionableError(
             error="Context expired",
             error_type="VALIDATION",
             service="ado-workflows",
         )
         with patch(
-            "ado_workflows_mcp.tools.pr_review._get_context",
+            "ado_workflows_mcp.tools.pr_review.get_context",
             side_effect=bare_error,
         ):
             # When: called
@@ -492,7 +492,7 @@ class TestAnalyzePendingReviews:
         """
         # Given: context helper raises a raw exception
         with patch(
-            "ado_workflows_mcp.tools.pr_review._get_context",
+            "ado_workflows_mcp.tools.pr_review.get_context",
             side_effect=RuntimeError("network unreachable"),
         ):
             # When: called

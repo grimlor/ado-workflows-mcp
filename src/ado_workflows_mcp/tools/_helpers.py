@@ -1,4 +1,11 @@
-"""Shared helpers for MCP tool modules."""
+"""
+Shared helpers for MCP tool modules.
+
+This is a package-internal module (note the ``_`` prefix on the file name).
+Functions here are intentionally *not* ``_``-prefixed themselves so that
+sibling tool modules can import them without triggering private-usage
+diagnostics — the module name is the visibility boundary.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +16,7 @@ from ado_workflows.client import AdoClient
 from ado_workflows.context import RepositoryContext
 
 
-def _get_context(working_directory: str | None = None) -> dict[str, Any]:
+def get_context(working_directory: str | None = None) -> dict[str, Any]:
     """
     Return cached repository context, resolving if needed.
 
@@ -21,7 +28,7 @@ def _get_context(working_directory: str | None = None) -> dict[str, Any]:
     return RepositoryContext.get(working_directory=working_directory)
 
 
-def _get_client(  # pyright: ignore[reportUnusedFunction]  # called by sibling tool modules
+def get_client(
     working_directory: str | None = None,
     *,
     org_url: str | None = None,
@@ -34,7 +41,7 @@ def _get_client(  # pyright: ignore[reportUnusedFunction]  # called by sibling t
     repository context (or *working_directory*).
     """
     if not org_url:
-        ctx = _get_context(working_directory)
+        ctx = get_context(working_directory)
         org_url = ctx.get("org_url") or f"https://dev.azure.com/{ctx['organization']}"
     connection = ConnectionFactory().get_connection(str(org_url))
     return AdoClient(connection)

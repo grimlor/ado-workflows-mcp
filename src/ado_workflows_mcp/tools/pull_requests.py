@@ -9,8 +9,8 @@ from ado_workflows.pr import AzureDevOpsPRContext, establish_pr_context as _lib_
 
 from ado_workflows_mcp.mcp_instance import mcp
 from ado_workflows_mcp.tools._helpers import (
-    _get_client,  # pyright: ignore[reportPrivateUsage]  # package-internal helpers
-    _get_context,  # pyright: ignore[reportPrivateUsage]  # package-internal helpers
+    get_client,
+    get_context,
 )
 
 
@@ -85,8 +85,8 @@ def create_pull_request(
 
     """
     try:
-        ctx = _get_context(working_directory)
-        client = _get_client(working_directory)
+        ctx = get_context(working_directory)
+        client = get_client(working_directory)
         return _lib_create_pr(
             client,
             repository=ctx["name"],

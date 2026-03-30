@@ -13,6 +13,7 @@ from ado_workflows_mcp.tools.pr_comments import (
     analyze_pr_comments as analyze_pr_comments,
     post_pr_comment as post_pr_comment,
     post_pr_comments as post_pr_comments,
+    post_rich_comments as post_rich_comments,
     reply_to_pr_comment as reply_to_pr_comment,
     resolve_pr_comments as resolve_pr_comments,
 )
@@ -53,6 +54,7 @@ __all__ = [
     "get_repository_context_status",
     "post_pr_comment",
     "post_pr_comments",
+    "post_rich_comments",
     "reply_to_pr_comment",
     "repository_discovery",
     "resolve_pr_comments",

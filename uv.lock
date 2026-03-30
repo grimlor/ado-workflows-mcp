@@ -13,21 +13,21 @@ wheels = [
 
 [[package]]
 name = "ado-workflows"
-version = "0.3.0"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "actionable-errors" },
     { name = "azure-devops" },
     { name = "azure-identity" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ae/65/72536e5e6f5c583735c338a6ffe923cb6113578de7422e5a8f2d910a4cd7/ado_workflows-0.3.0.tar.gz", hash = "sha256:5b84336905c05074895eb5eb59387dc430eaecd883fb4f421a675963fb80cb85", size = 136094, upload-time = "2026-03-27T04:02:22.776Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/5a/8110aeaf1241b1ab4259db04ce3b8eb4bcac56495c3b7073851028cb141b/ado_workflows-0.4.0.tar.gz", hash = "sha256:5280bf738a027cf5c7d5ff311992864976b1f78965ccde7e94e76a35a226de86", size = 155469, upload-time = "2026-03-28T03:59:05.8Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/48/5dd034f08d288493f444546d398cbf04dbd0b7e8bbc8b40f7f7ff5b7ebd4/ado_workflows-0.3.0-py3-none-any.whl", hash = "sha256:7d9d4e65e7cdbabcab448893e9450a4a706bae7215ad816ecdc29ab3a0a1b5ac", size = 36062, upload-time = "2026-03-27T04:02:20.938Z" },
+    { url = "https://files.pythonhosted.org/packages/cc/c0/4d44f0084e8e2b5eaa56f3acf84012929fd6220ca63b084c4b1ad658d09e/ado_workflows-0.4.0-py3-none-any.whl", hash = "sha256:499b24de0d0111667901804f1cb27fc27e8afb0c82383e15477e3482e854d944", size = 40336, upload-time = "2026-03-28T03:59:04.652Z" },
 ]
 
 [[package]]
 name = "ado-workflows-mcp"
-version = "0.4.0"
+version = "0.4.2"
 source = { editable = "." }
 dependencies = [
     { name = "ado-workflows" },
@@ -48,7 +48,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ado-workflows", specifier = ">=0.3.0" },
+    { name = "ado-workflows", specifier = ">=0.4.0" },
     { name = "fastmcp", specifier = ">=2.0.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4,<5" },
     { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1,<2" },

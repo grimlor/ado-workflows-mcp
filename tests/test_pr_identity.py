@@ -240,36 +240,36 @@ class TestGetCurrentUser:
 
     def test_auth_failure_returns_actionable_error(self, tmp_path: Any) -> None:
         """
-        Given authentication fails
+        Given the library raises ActionableError during authentication
         When get_current_user is called
-        Then returns ActionableError with ai_guidance
+        Then returns the ActionableError to the caller
         """
-        # Given: context is set but auth fails
+        # Given: context is set and _lib_current_user raises ActionableError
         _setup_context(tmp_path)
 
-        mock_factory = _mock_connection_factory()
+        auth_error = ActionableError(
+            error="Token expired",
+            error_type="AUTHENTICATION",
+            service="ado-workflows",
+        )
         with (
-            patch(_CONN_FACTORY_PATCH, mock_factory),
-            patch(_ADO_CLIENT_PATCH) as mock_ado_client_cls,
+            patch(
+                "ado_workflows_mcp.tools.pr_identity.get_client",
+                return_value=Mock(),
+            ),
+            patch(
+                "ado_workflows_mcp.tools.pr_identity._lib_current_user",
+                side_effect=auth_error,
+            ),
         ):
-            mock_client = Mock()
-            mock_client.location.get_connection_data.side_effect = ActionableError(
-                error="Token expired",
-                error_type="AUTHENTICATION",
-                service="ado-workflows",
-            )
-            mock_ado_client_cls.return_value = mock_client
-
             # When: called
             result = get_current_user(working_directory=str(tmp_path))
 
-        # Then: returns ActionableError with ai_guidance
+        # Then: returns ActionableError
         assert isinstance(result, ActionableError), (
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
-        assert result.ai_guidance is not None, (
-            f"Expected ai_guidance on auth error, got None. Error: {result.error}"
-        )
+        assert result is auth_error, "Expected the same ActionableError instance"
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
         """
@@ -281,7 +281,7 @@ class TestGetCurrentUser:
         _setup_context(tmp_path)
 
         with patch(
-            "ado_workflows_mcp.tools.pr_identity._get_client",
+            "ado_workflows_mcp.tools.pr_identity.get_client",
             side_effect=RuntimeError("unexpected crash"),
         ):
             # When: called

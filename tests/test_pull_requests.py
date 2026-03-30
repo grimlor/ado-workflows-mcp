@@ -260,7 +260,7 @@ class TestCreatePullRequest:
     MOCK BOUNDARY:
         Mock:  `subprocess.run` (git CLI — context), `ConnectionFactory` (auth),
                `client.git.create_pull_request` (SDK REST call)
-        Real:  tool function, `create_pull_request`, `_get_client`, branch
+        Real:  tool function, `create_pull_request`, `get_client`, branch
                normalization, response formatting
         Never: FastMCP framework, library functions in our codebase
     """
