@@ -2,6 +2,28 @@
 
 <!-- version list -->
 
+## v0.5.1 (2026-03-30)
+
+### Bug Fixes
+
+- **ci**: Install uv via pipx instead of curl in .envrc
+  ([`accd75e`](https://github.com/grimlor/ado-workflows-mcp/commit/accd75e09572c2e59712999a7bf03c5496d4dd9f))
+
+### Refactoring
+
+- **tests**: Fix mock boundary violations across test suite\n\nRemove 19 mocks of internal library
+  functions (_lib_establish_pr,\n_lib_establish, _lib_post_rich, get_client,
+  _lib_current_user)\nacross 6 test files. Replace with proper I/O boundary mocks:\n\n- Pattern A:
+  Use invalid input (pr_url_or_id=\"not-a-valid-id\") to\n trigger real
+  ActionableError.validation(ai_guidance=None) for\n enrichment tests — zero mocks needed.\n-
+  Pattern B: Mock ConnectionFactory.get_connection to raise\n RuntimeError/TypeError for unexpected
+  exception tests.\n- Pattern C: Let real library run through mocked SDK for argument\n coercion
+  tests, verify via RichPostingResult output.\n\nAlso add create_comment mock to
+  _mock_client_for_posting() to\nsupport parent_thread_id reply path.\n\n93 tests, 334 stmts, 0
+  missed, 100% coverage."
+  ([`65420f6`](https://github.com/grimlor/ado-workflows-mcp/commit/65420f645477fc81c6f02233d29f4d3e51c7c205))
+
+
 ## v0.5.0 (2026-03-30)
 
 ### Features
