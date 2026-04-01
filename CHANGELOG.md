@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v0.6.0 (2026-04-01)
+
+### Chores
+
+- Update uv.lock
+  ([`81a073e`](https://github.com/grimlor/ado-workflows-mcp/commit/81a073e28ad2b4a128f0a923396e757a938b975f))
+
+### Features
+
+- Add PR lifecycle MCP tools, rename pull_requests to pr_context
+  ([`9db85cc`](https://github.com/grimlor/ado-workflows-mcp/commit/9db85cce2bd7844529710663ee584914961df65d))
+
+### Breaking Changes
+
+- `tools/pull_requests.py` renamed to `tools/pr_context.py` for consistent `pr_*` module naming.
+  Consumers importing from `ado_workflows_mcp.tools.pull_requests` must update to
+  `ado_workflows_mcp.tools.pr_context`.
+
+
 ## v0.5.1 (2026-03-30)
 
 ### Bug Fixes
