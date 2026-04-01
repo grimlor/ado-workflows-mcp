@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.6.1 (2026-04-01)
+
+### Bug Fixes
+
+- **deps**: Bump ado-workflows floor to >=0.6.0 for CommentType.DOMAIN
+  ([`feba94a`](https://github.com/grimlor/ado-workflows-mcp/commit/feba94a0da2b27f295b6545f8e13be0da5fa59e0))
+
+### Testing
+
+- Add branch coverage for pr_lifecycle ai_guidance pass-through
+  ([`1fae11f`](https://github.com/grimlor/ado-workflows-mcp/commit/1fae11f36dfc96199e460b12d7fb92ae3b04a506))
+
+
 ## v0.6.0 (2026-04-01)
 
 ### Chores
