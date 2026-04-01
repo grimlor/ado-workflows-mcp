@@ -42,8 +42,8 @@ class TestServerEntryPoint:
         """
         # When/Then: mcp has registered tools (import at module level triggers registration)
         tools = asyncio.run(mcp.list_tools())
-        assert len(tools) == 18, (
-            f"Expected 18 registered tools, got {len(tools)}: {[t.name for t in tools]}"
+        assert len(tools) == 31, (
+            f"Expected 31 registered tools, got {len(tools)}: {[t.name for t in tools]}"
         )
 
     def test_main_calls_mcp_run(self) -> None:

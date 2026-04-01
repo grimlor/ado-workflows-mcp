@@ -1,11 +1,11 @@
 """
-BDD tests for tools/pull_requests.py — PR context and creation tools.
+BDD tests for tools/pr_context.py — PR context and creation tools.
 
 Covers:
 - TestEstablishPRContext: resolving PR context from URL or numeric ID
 - TestCreatePullRequest: creating a pull request via SDK
 
-Public API surface (from src/ado_workflows_mcp/tools/pull_requests.py):
+Public API surface (from src/ado_workflows_mcp/tools/pr_context.py):
     establish_pr_context(pr_url_or_id: str, working_directory: str | None)
         -> AzureDevOpsPRContext | ActionableError
     create_pull_request(source_branch: str, target_branch: str, ...)
@@ -34,7 +34,7 @@ from ado_workflows.context import RepositoryContext
 from ado_workflows.models import CreatedPR
 from ado_workflows.pr import AzureDevOpsPRContext
 
-from ado_workflows_mcp.tools.pull_requests import (
+from ado_workflows_mcp.tools.pr_context import (
     create_pull_request,
     establish_pr_context,
 )

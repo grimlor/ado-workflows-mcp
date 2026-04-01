@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ado-workflows>=0.4.0",
+    "ado-workflows>=0.5.0",
     "fastmcp>=2.0.0",
 ]
 
@@ -55,7 +55,7 @@ lint   = "uv run ruff check --fix src/ tests/"
 format = "uv run ruff format src/ tests/"
 type   = "uv run pyright src/ tests/"
 test   = "uv run pytest tests/ -v"
-cov    = "uv run pytest tests/ --cov=ado_workflows_mcp --cov-report=term-missing"
+cov    = "uv run pytest tests/ --cov=ado_workflows_mcp --cov-branch --cov-report=term-missing"
 check  = "task format && task lint && task type && task test"
 
 # ---------------------------------------------------------------------------
