@@ -57,7 +57,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from actionable_errors import ActionableError
+from actionable_errors import ActionableError, AIGuidance
 from ado_workflows.models import (
     LabelDetail,
     PullRequestDetail,
@@ -88,6 +88,17 @@ _PR_URL = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo/pullrequest/4
 _CONN_FACTORY_PATCH = "ado_workflows_mcp.tools._helpers.ConnectionFactory"
 _ADO_CLIENT_PATCH = "ado_workflows_mcp.tools._helpers.AdoClient"
 _ESTABLISH_PR_PATCH = "ado_workflows_mcp.tools.pr_lifecycle._lib_establish_pr"
+
+
+def _error_with_guidance() -> ActionableError:
+    """Return an ActionableError that already has ai_guidance set."""
+    return ActionableError.connection(
+        service="AzureDevOps",
+        url="https://dev.azure.com",
+        raw_error="test error",
+        suggestion="test suggestion",
+        ai_guidance=AIGuidance(action_required="pre-set guidance"),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +172,24 @@ class TestGetPullRequest:
         )
         assert result.ai_guidance is not None, (
             f"Expected ai_guidance on error, got None. Error: {result}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When get_pull_request is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = get_pull_request(pr_url_or_id=_PR_URL)
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance preserved, got: {result.ai_guidance.action_required}"
         )
 
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
@@ -250,6 +279,24 @@ class TestUpdatePullRequest:
         )
         assert result.ai_guidance is not None, "Expected ai_guidance on error"
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When update_pull_request is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = update_pull_request(pr_url_or_id=_PR_URL, title="X")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
     def test_unexpected_exception_returns_internal_error(self, mock_establish: MagicMock) -> None:
         """
@@ -329,6 +376,24 @@ class TestRetargetPullRequest:
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When retarget_pull_request is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = retarget_pull_request(pr_url_or_id=_PR_URL, target_branch="x")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
     def test_unexpected_exception_returns_internal_error(self, mock_establish: MagicMock) -> None:
         """
@@ -406,6 +471,24 @@ class TestSetPRDraftStatus:
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When set_pr_draft_status is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = set_pr_draft_status(pr_url_or_id=_PR_URL, is_draft=False)
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
     def test_unexpected_exception_returns_internal_error(self, mock_establish: MagicMock) -> None:
         """
@@ -479,6 +562,24 @@ class TestAbandonPullRequest:
         result = abandon_pull_request(pr_url_or_id="bad")
         assert isinstance(result, ActionableError), (
             f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When abandon_pull_request is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = abandon_pull_request(pr_url_or_id=_PR_URL)
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
@@ -568,6 +669,24 @@ class TestCompletePullRequest:
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When complete_pull_request is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = complete_pull_request(pr_url_or_id=_PR_URL)
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
     def test_unexpected_exception_returns_internal_error(self, mock_establish: MagicMock) -> None:
         """
@@ -638,6 +757,24 @@ class TestAddPRReviewer:
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When add_pr_reviewer is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = add_pr_reviewer(pr_url_or_id=_PR_URL, reviewer_id="guid-1")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
     def test_unexpected_exception_returns_internal_error(self, mock_establish: MagicMock) -> None:
         """
@@ -698,6 +835,24 @@ class TestRemovePRReviewer:
         result = remove_pr_reviewer(pr_url_or_id="bad", reviewer_id="guid-1")
         assert isinstance(result, ActionableError), (
             f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When remove_pr_reviewer is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = remove_pr_reviewer(pr_url_or_id=_PR_URL, reviewer_id="guid-1")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
@@ -769,6 +924,24 @@ class TestListPRReviewers:
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When list_pr_reviewers is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = list_pr_reviewers(pr_url_or_id=_PR_URL)
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
     def test_unexpected_exception_returns_internal_error(self, mock_establish: MagicMock) -> None:
         """
@@ -833,6 +1006,24 @@ class TestAddPRLabel:
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When add_pr_label is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = add_pr_label(pr_url_or_id=_PR_URL, name="x")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
     def test_unexpected_exception_returns_internal_error(self, mock_establish: MagicMock) -> None:
         """
@@ -893,6 +1084,24 @@ class TestRemovePRLabel:
         result = remove_pr_label(pr_url_or_id="bad", label_name="x")
         assert isinstance(result, ActionableError), (
             f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When remove_pr_label is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = remove_pr_label(pr_url_or_id=_PR_URL, label_name="x")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
@@ -960,6 +1169,24 @@ class TestListPRLabels:
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When list_pr_labels is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = list_pr_labels(pr_url_or_id=_PR_URL)
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
     def test_unexpected_exception_returns_internal_error(self, mock_establish: MagicMock) -> None:
         """
@@ -1023,6 +1250,24 @@ class TestGetPRWorkItems:
         result = get_pr_work_items(pr_url_or_id="bad")
         assert isinstance(result, ActionableError), (
             f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When get_pr_work_items is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = get_pr_work_items(pr_url_or_id=_PR_URL)
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     @patch(_ESTABLISH_PR_PATCH, side_effect=RuntimeError("boom"))
