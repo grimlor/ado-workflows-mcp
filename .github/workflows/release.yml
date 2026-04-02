@@ -83,7 +83,7 @@ jobs:
         run: uv run pyright src/ tests/
 
       - name: Test
-        run: uv run pytest --cov=ado_workflows_mcp --cov-report=term-missing
+        run: uv run pytest --cov=ado_workflows_mcp --cov-branch --cov-report=term-missing
 
       - name: Build
         run: uv build
