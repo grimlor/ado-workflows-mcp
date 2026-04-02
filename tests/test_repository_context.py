@@ -26,7 +26,7 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from actionable_errors import ActionableError
+from actionable_errors import ActionableError, AIGuidance
 from ado_workflows.context import RepositoryContext
 
 from ado_workflows_mcp.tools.repository_context import (
@@ -56,6 +56,17 @@ def _git_success(remote: str = _ADO_REMOTE) -> MagicMock:
 def _git_failure() -> MagicMock:
     """Return a mock subprocess result for a non-git directory."""
     return MagicMock(returncode=1, stderr="fatal: not a git repository")
+
+
+def _error_with_guidance() -> ActionableError:
+    """Return an ActionableError that already has ai_guidance set."""
+    return ActionableError.connection(
+        service="AzureDevOps",
+        url="https://dev.azure.com",
+        raw_error="test error",
+        suggestion="test suggestion",
+        ai_guidance=AIGuidance(action_required="pre-set guidance"),
+    )
 
 
 class TestSetRepositoryContext:
@@ -144,6 +155,26 @@ class TestSetRepositoryContext:
         guidance = result.ai_guidance.action_required.lower()
         assert "context" in guidance or "git" in guidance or "working directory" in guidance, (
             f"ai_guidance should mention context/git/working directory, got: {guidance}"
+        )
+
+    @patch(
+        "ado_workflows_mcp.tools.repository_context._lib_set", side_effect=_error_with_guidance()
+    )
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When set_repository_context is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = set_repository_context(working_directory="/fake")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     def test_unexpected_exception_returns_internal_error(self) -> None:
@@ -257,6 +288,27 @@ class TestGetRepositoryContextStatus:
         guidance = result.ai_guidance.action_required.lower()
         assert "context" in guidance or "status" in guidance or "retry" in guidance, (
             f"ai_guidance should mention context/status/retry, got: {guidance}"
+        )
+
+    @patch(
+        "ado_workflows_mcp.tools.repository_context._lib_status",
+        side_effect=_error_with_guidance(),
+    )
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When get_repository_context_status is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = get_repository_context_status()
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     def test_unexpected_exception_returns_internal_error(self) -> None:
@@ -373,6 +425,26 @@ class TestClearRepositoryContext:
         guidance = result.ai_guidance.action_required.lower()
         assert "clear" in guidance or "retry" in guidance or "error" in guidance, (
             f"ai_guidance should mention clear/retry/error, got: {guidance}"
+        )
+
+    @patch(
+        "ado_workflows_mcp.tools.repository_context._lib_clear", side_effect=_error_with_guidance()
+    )
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When clear_repository_context is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = clear_repository_context()
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     def test_unexpected_exception_returns_internal_error(self) -> None:

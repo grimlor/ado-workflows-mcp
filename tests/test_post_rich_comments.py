@@ -28,7 +28,7 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
-from actionable_errors import ActionableError
+from actionable_errors import ActionableError, AIGuidance
 from ado_workflows.context import RepositoryContext
 from ado_workflows.models import RichPostingResult
 
@@ -45,6 +45,8 @@ _CONN_FACTORY_PATCH = "ado_workflows_mcp.tools._helpers.ConnectionFactory"
 _ADO_CLIENT_PATCH = "ado_workflows_mcp.tools._helpers.AdoClient"
 _GET_PR_AUTHOR_PATCH = "ado_workflows.pr.get_pr_author"
 _GET_CURRENT_USER_PATCH = "ado_workflows.auth.get_current_user"
+
+_ESTABLISH_PR_PATCH = "ado_workflows_mcp.tools.pr_comments._lib_establish_pr"
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +71,17 @@ def _mock_connection_factory() -> MagicMock:
     factory = MagicMock()
     factory.return_value.get_connection.return_value = MagicMock()
     return factory
+
+
+def _error_with_guidance() -> ActionableError:
+    """Return an ActionableError that already has ai_guidance set."""
+    return ActionableError.connection(
+        service="AzureDevOps",
+        url="https://dev.azure.com",
+        raw_error="test error",
+        suggestion="test suggestion",
+        ai_guidance=AIGuidance(action_required="pre-set guidance"),
+    )
 
 
 def _make_comment_dict(
@@ -552,4 +565,25 @@ class TestPostRichComments:
         assert result.ai_guidance is not None, "Expected ai_guidance on internal error"
         assert "post_rich_comments" in str(result), (
             f"Expected operation name in error, got: {result}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When post_rich_comments is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = post_rich_comments(
+            pr_url_or_id="https://dev.azure.com/O/P/_git/R/pullrequest/1",
+            comments=[{"comment_id": "1", "title": "t", "content": "c"}],
+        )
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )

@@ -33,7 +33,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
-from actionable_errors import ActionableError
+from actionable_errors import ActionableError, AIGuidance
 from ado_workflows.context import RepositoryContext
 from ado_workflows.models import PendingReviewResult, ReviewStatus
 
@@ -108,6 +108,17 @@ def _setup_review_mocks(mock_client: Mock) -> None:
     mock_client.git.get_pull_request_properties.return_value = {"value": {}}
     mock_client.git.get_threads.return_value = []
     mock_client.policy.get_policy_evaluations.return_value = []
+
+
+def _error_with_guidance() -> ActionableError:
+    """Return an ActionableError that already has ai_guidance set."""
+    return ActionableError.connection(
+        service="AzureDevOps",
+        url="https://dev.azure.com",
+        raw_error="test error",
+        suggestion="test suggestion",
+        ai_guidance=AIGuidance(action_required="pre-set guidance"),
+    )
 
 
 class TestGetPRReviewStatus:
@@ -264,6 +275,24 @@ class TestGetPRReviewStatus:
         guidance = result.ai_guidance.action_required.lower()
         assert "review" in guidance or "pr" in guidance or "credential" in guidance, (
             f"ai_guidance should mention review/PR/credential, got: {guidance}"
+        )
+
+    @patch("ado_workflows_mcp.tools.pr_review.get_context", side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When get_pr_review_status is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = get_pr_review_status(pr_id=42)
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     def test_unexpected_exception_returns_internal_error(self) -> None:
@@ -482,6 +511,24 @@ class TestAnalyzePendingReviews:
         guidance = result.ai_guidance.action_required.lower()
         assert "review" in guidance or "credential" in guidance or "context" in guidance, (
             f"ai_guidance should mention review/credential/context, got: {guidance}"
+        )
+
+    @patch("ado_workflows_mcp.tools.pr_review.get_context", side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When analyze_pending_reviews is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = analyze_pending_reviews()
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     def test_unexpected_exception_returns_internal_error(self) -> None:

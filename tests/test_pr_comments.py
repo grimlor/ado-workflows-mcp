@@ -37,7 +37,7 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
-from actionable_errors import ActionableError
+from actionable_errors import ActionableError, AIGuidance
 from ado_workflows.context import RepositoryContext
 from ado_workflows.models import CommentAnalysis, ResolveResult
 
@@ -47,6 +47,20 @@ from ado_workflows_mcp.tools.pr_comments import (
     reply_to_pr_comment,
     resolve_pr_comments,
 )
+
+_ESTABLISH_PR_PATCH = "ado_workflows_mcp.tools.pr_comments._lib_establish_pr"
+
+
+def _error_with_guidance() -> ActionableError:
+    """Return an ActionableError that already has ai_guidance set."""
+    return ActionableError.connection(
+        service="AzureDevOps",
+        url="https://dev.azure.com",
+        raw_error="test error",
+        suggestion="test suggestion",
+        ai_guidance=AIGuidance(action_required="pre-set guidance"),
+    )
+
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -239,6 +253,24 @@ class TestAnalyzePRComments:
             f"ai_guidance should mention comment/analysis/credential, got: {guidance}"
         )
 
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When analyze_pr_comments is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = analyze_pr_comments(pr_url_or_id="https://dev.azure.com/O/P/_git/R/pullrequest/1")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
 
 class TestPostPRComment:
     """
@@ -375,6 +407,26 @@ class TestPostPRComment:
         guidance = result.ai_guidance.action_required.lower()
         assert "posting" in guidance or "comment" in guidance or "credential" in guidance, (
             f"ai_guidance should mention posting/comment/credential, got: {guidance}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When post_pr_comment is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = post_pr_comment(
+            pr_url_or_id="https://dev.azure.com/O/P/_git/R/pullrequest/1", comment_text="x"
+        )
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
@@ -564,6 +616,28 @@ class TestReplyToPRComment:
         guidance = result.ai_guidance.action_required.lower()
         assert "reply" in guidance or "thread" in guidance or "credential" in guidance, (
             f"ai_guidance should mention reply/thread/credential, got: {guidance}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When reply_to_pr_comment is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = reply_to_pr_comment(
+            pr_url_or_id="https://dev.azure.com/O/P/_git/R/pullrequest/1",
+            thread_id=1,
+            comment_text="x",
+        )
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
@@ -788,4 +862,24 @@ class TestResolvePRComments:
         guidance = result.ai_guidance.action_required.lower()
         assert "resolution" in guidance or "thread" in guidance or "credential" in guidance, (
             f"ai_guidance should mention resolution/thread/credential, got: {guidance}"
+        )
+
+    @patch(_ESTABLISH_PR_PATCH, side_effect=_error_with_guidance())
+    def test_actionable_error_with_guidance_passes_through(
+        self, mock_establish: MagicMock
+    ) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When resolve_pr_comments is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = resolve_pr_comments(
+            pr_url_or_id="https://dev.azure.com/O/P/_git/R/pullrequest/1", thread_ids=[1]
+        )
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )

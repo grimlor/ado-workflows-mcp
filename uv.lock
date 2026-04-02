@@ -27,7 +27,7 @@ wheels = [
 
 [[package]]
 name = "ado-workflows-mcp"
-version = "0.6.0"
+version = "0.6.1"
 source = { editable = "." }
 dependencies = [
     { name = "ado-workflows" },

@@ -21,7 +21,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
-from actionable_errors import ActionableError
+from actionable_errors import ActionableError, AIGuidance
 
 from ado_workflows_mcp.tools.repositories import repository_discovery
 
@@ -56,6 +56,17 @@ def _setup_git_repo(tmp_path: Any, remote: str = _ADO_REMOTE) -> str:
     """Create a .git directory in tmp_path and return its path as a string."""
     (tmp_path / ".git").mkdir()
     return str(tmp_path)
+
+
+def _error_with_guidance() -> ActionableError:
+    """Return an ActionableError that already has ai_guidance set."""
+    return ActionableError.connection(
+        service="AzureDevOps",
+        url="https://dev.azure.com",
+        raw_error="test error",
+        suggestion="test suggestion",
+        ai_guidance=AIGuidance(action_required="pre-set guidance"),
+    )
 
 
 class TestRepositoryDiscovery:
@@ -257,6 +268,25 @@ class TestRepositoryDiscovery:
         guidance = result.ai_guidance.action_required.lower()
         assert "discovery" in guidance or "error" in guidance or "retry" in guidance, (
             f"ai_guidance should mention discovery/error/retry, got: {guidance}"
+        )
+
+    @patch(
+        "ado_workflows_mcp.tools.repositories.discover_repositories",
+        side_effect=_error_with_guidance(),
+    )
+    def test_actionable_error_with_guidance_passes_through(self, mock_discover: MagicMock) -> None:
+        """
+        Given an ActionableError that already has ai_guidance set
+        When repository_discovery is called
+        Then returns the error with original ai_guidance preserved
+        """
+        result = repository_discovery(working_directory="/tmp")
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance preserved"
+        assert result.ai_guidance.action_required == "pre-set guidance", (
+            f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
 
     def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
