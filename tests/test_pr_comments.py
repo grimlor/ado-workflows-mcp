@@ -26,7 +26,7 @@ Library API surface:
         status) -> ResolveResult
 
 I/O boundaries:
-    ado_workflows.discovery.subprocess.run (git CLI)
+    ado_workflows.discovery.Repo (GitPython)
     ado_workflows.auth.ConnectionFactory / DefaultAzureCredential (auth)
     client.git.get_threads, client.git.create_thread, client.git.create_comment,
     client.git.update_thread (SDK REST calls)
@@ -68,7 +68,7 @@ def _error_with_guidance() -> ActionableError:
 
 _ADO_REMOTE = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo"
 _PR_URL = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo/pullrequest/42"
-_SUBPROCESS_PATCH = "ado_workflows.discovery.subprocess.run"
+_REPO_PATCH = "ado_workflows.discovery.Repo"
 _CONN_FACTORY_PATCH = "ado_workflows_mcp.tools._helpers.ConnectionFactory"
 _ADO_CLIENT_PATCH = "ado_workflows_mcp.tools._helpers.AdoClient"
 
@@ -78,15 +78,26 @@ _ADO_CLIENT_PATCH = "ado_workflows_mcp.tools._helpers.AdoClient"
 # ---------------------------------------------------------------------------
 
 
-def _git_success(remote: str = _ADO_REMOTE) -> MagicMock:
-    """Return a mock subprocess result for a successful git remote -v."""
-    return MagicMock(returncode=0, stdout=remote)
+def _mock_git_repo(remote_url: str = _ADO_REMOTE) -> MagicMock:
+    """Return a mock GitPython Repo with an origin remote."""
+    repo = MagicMock()
+    repo.remotes.origin.url = remote_url
+
+    def _bool(_self: object) -> bool:
+        return True
+
+    def _len(_self: object) -> int:
+        return 1
+
+    repo.remotes.__bool__ = _bool
+    repo.remotes.__len__ = _len
+    return repo
 
 
 def _setup_context(tmp_path: Any) -> None:
-    """Set up repository context with subprocess mocked."""
+    """Set up repository context with git.Repo mocked at the I/O edge."""
     (tmp_path / ".git").mkdir()
-    with patch(_SUBPROCESS_PATCH, return_value=_git_success()):
+    with patch(_REPO_PATCH, return_value=_mock_git_repo()):
         RepositoryContext.set(working_directory=str(tmp_path))
 
 
@@ -126,7 +137,7 @@ class TestAnalyzePRComments:
     WHY: Gives agent a structured overview before taking action on comments.
 
     MOCK BOUNDARY:
-        Mock:  `subprocess.run` (git CLI — context), `ConnectionFactory` (auth),
+        Mock:  `git.Repo` (GitPython — context), `ConnectionFactory` (auth),
                `client.git.get_threads` (SDK REST call)
         Real:  tool function, `establish_pr_context`, `analyze_pr_comments`,
                thread categorization, author stats, dataclass construction
@@ -281,7 +292,7 @@ class TestPostPRComment:
     WHY: Replaces `az rest POST` subprocess.
 
     MOCK BOUNDARY:
-        Mock:  `subprocess.run` (git CLI — context), `ConnectionFactory` (auth),
+        Mock:  `git.Repo` (GitPython — context), `ConnectionFactory` (auth),
                `client.git.create_thread` (SDK REST call)
         Real:  tool function, `establish_pr_context`, `post_comment`,
                response formatting
@@ -470,7 +481,7 @@ class TestReplyToPRComment:
     WHY: Replaces `az rest POST .../comments` subprocess.
 
     MOCK BOUNDARY:
-        Mock:  `subprocess.run` (git CLI — context), `ConnectionFactory` (auth),
+        Mock:  `git.Repo` (GitPython — context), `ConnectionFactory` (auth),
                `client.git.create_comment` (SDK REST call)
         Real:  tool function, `establish_pr_context`, `reply_to_comment`,
                response formatting
@@ -682,7 +693,7 @@ class TestResolvePRComments:
     WHY: Partial-success semantics — doesn't fail the batch on individual errors.
 
     MOCK BOUNDARY:
-        Mock:  `subprocess.run` (git CLI — context), `ConnectionFactory` (auth),
+        Mock:  `git.Repo` (GitPython — context), `ConnectionFactory` (auth),
                `client.git.get_threads`, `client.git.update_thread` (SDK REST calls)
         Real:  tool function, `establish_pr_context`, `resolve_comments`,
                partial-success logic, dataclass construction

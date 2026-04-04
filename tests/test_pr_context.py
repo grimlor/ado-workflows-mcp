@@ -19,7 +19,7 @@ Library API surface:
     ado_workflows.client.AdoClient(connection) — wraps SDK client
 
 I/O boundaries:
-    ado_workflows.discovery.subprocess.run (git CLI)
+    ado_workflows.discovery.Repo (GitPython)
     ado_workflows.auth.ConnectionFactory / DefaultAzureCredential (auth)
     client.git.create_pull_request (SDK REST call)
 """
@@ -45,7 +45,7 @@ from ado_workflows_mcp.tools.pr_context import (
 
 _ADO_REMOTE = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo"
 _PR_URL = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo/pullrequest/42"
-_SUBPROCESS_PATCH = "ado_workflows.discovery.subprocess.run"
+_REPO_PATCH = "ado_workflows.discovery.Repo"
 _CONN_FACTORY_PATCH = "ado_workflows_mcp.tools._helpers.ConnectionFactory"
 
 
@@ -54,9 +54,20 @@ _CONN_FACTORY_PATCH = "ado_workflows_mcp.tools._helpers.ConnectionFactory"
 # ---------------------------------------------------------------------------
 
 
-def _git_success(remote: str = _ADO_REMOTE) -> MagicMock:
-    """Return a mock subprocess result for a successful git remote -v."""
-    return MagicMock(returncode=0, stdout=remote)
+def _mock_git_repo(remote_url: str = _ADO_REMOTE) -> MagicMock:
+    """Return a mock GitPython Repo with an origin remote."""
+    repo = MagicMock()
+    repo.remotes.origin.url = remote_url
+
+    def _bool(_self: object) -> bool:
+        return True
+
+    def _len(_self: object) -> int:
+        return 1
+
+    repo.remotes.__bool__ = _bool
+    repo.remotes.__len__ = _len
+    return repo
 
 
 def _mock_connection_factory() -> MagicMock:
@@ -98,7 +109,7 @@ class TestEstablishPRContext:
     WHY: Eliminates repeated URL parsing across comment/review tools.
 
     MOCK BOUNDARY:
-        Mock:  `subprocess.run` (git CLI — for context resolution when using
+        Mock:  `git.Repo` (GitPython — for context resolution when using
                numeric ID)
         Real:  tool function, `establish_pr_context`, URL parsing,
                `tmp_path` filesystem
@@ -137,7 +148,7 @@ class TestEstablishPRContext:
         """
         # Given: repository context is set
         (tmp_path / ".git").mkdir()
-        with patch(_SUBPROCESS_PATCH, return_value=_git_success()):
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
             RepositoryContext.set(working_directory=str(tmp_path))
 
         # When: called with a numeric ID
@@ -252,10 +263,10 @@ class TestEstablishPRContext:
         Then returns ActionableError.internal with ai_guidance
         """
         # Given: .git dir exists so discovery enters inspect_git_repository,
-        # but subprocess.run raises an unexpected RuntimeError
+        # but git.Repo raises an unexpected RuntimeError
         (tmp_path / ".git").mkdir()
         with patch(
-            _SUBPROCESS_PATCH,
+            _REPO_PATCH,
             side_effect=RuntimeError("unexpected parse error"),
         ):
             # When: called with numeric ID (triggers context discovery)
@@ -285,7 +296,7 @@ class TestCreatePullRequest:
     WHY: Replaces `az repos pr create` subprocess.
 
     MOCK BOUNDARY:
-        Mock:  `subprocess.run` (git CLI — context), `ConnectionFactory` (auth),
+        Mock:  `git.Repo` (GitPython — context), `ConnectionFactory` (auth),
                `client.git.create_pull_request` (SDK REST call)
         Real:  tool function, `create_pull_request`, `get_client`, branch
                normalization, response formatting
@@ -300,7 +311,7 @@ class TestCreatePullRequest:
         """
         # Given: repository context is set
         (tmp_path / ".git").mkdir()
-        with patch(_SUBPROCESS_PATCH, return_value=_git_success()):
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
             RepositoryContext.set(working_directory=str(tmp_path))
 
         # Given: auth and SDK mocked
@@ -367,7 +378,7 @@ class TestCreatePullRequest:
         """
         # Given: repository context is set
         (tmp_path / ".git").mkdir()
-        with patch(_SUBPROCESS_PATCH, return_value=_git_success()):
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
             RepositoryContext.set(working_directory=str(tmp_path))
 
         # Given: auth mocked, SDK raises

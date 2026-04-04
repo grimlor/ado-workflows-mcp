@@ -13,7 +13,7 @@ Library API surface (from ado_workflows.discovery):
     infer_target_repository(repositories, working_directory) -> dict[str, Any] | None
 
 I/O boundary:
-    ado_workflows.discovery.subprocess.run (git CLI)
+    ado_workflows.discovery.Repo (GitPython)
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 _ADO_REMOTE = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo"
 _ADO_REMOTE_2 = "https://dev.azure.com/TestOrg/TestProject/_git/OtherRepo"
-_SUBPROCESS_PATCH = "ado_workflows.discovery.subprocess.run"
+_REPO_PATCH = "ado_workflows.discovery.Repo"
 
 
 # ---------------------------------------------------------------------------
@@ -42,14 +42,20 @@ _SUBPROCESS_PATCH = "ado_workflows.discovery.subprocess.run"
 # ---------------------------------------------------------------------------
 
 
-def _git_success(remote: str = _ADO_REMOTE) -> MagicMock:
-    """Return a mock subprocess result for a successful git remote -v."""
-    return MagicMock(returncode=0, stdout=remote)
+def _mock_git_repo(remote_url: str = _ADO_REMOTE) -> MagicMock:
+    """Return a mock GitPython Repo with an origin remote."""
+    repo = MagicMock()
+    repo.remotes.origin.url = remote_url
 
+    def _bool(_self: object) -> bool:
+        return True
 
-def _git_failure() -> MagicMock:
-    """Return a mock subprocess result for a non-git directory."""
-    return MagicMock(returncode=1, stderr="fatal: not a git repository")
+    def _len(_self: object) -> int:
+        return 1
+
+    repo.remotes.__bool__ = _bool
+    repo.remotes.__len__ = _len
+    return repo
 
 
 def _setup_git_repo(tmp_path: Any, remote: str = _ADO_REMOTE) -> str:
@@ -79,7 +85,7 @@ class TestRepositoryDiscovery:
     WHY: Prerequisite for every ADO operation — agents need org/project/repo context.
 
     MOCK BOUNDARY:
-        Mock:  `subprocess.run` (git CLI — the only I/O in discovery)
+        Mock:  `git.Repo` (GitPython — the only I/O in discovery)
         Real:  tool function, `discover_repositories`, `infer_target_repository`,
                response formatting, `tmp_path` filesystem
         Never: FastMCP framework, library functions in our codebase
@@ -91,9 +97,9 @@ class TestRepositoryDiscovery:
         When repository_discovery is called
         Then returns repo metadata dict
         """
-        # Given: a tmp_path with .git directory and subprocess returning ADO remote
+        # Given: a tmp_path with .git directory and git.Repo returning ADO remote
         repo_dir = _setup_git_repo(tmp_path)
-        with patch(_SUBPROCESS_PATCH, return_value=_git_success(_ADO_REMOTE)):
+        with patch(_REPO_PATCH, return_value=_mock_git_repo(_ADO_REMOTE)):
             # When: repository_discovery is called with working_directory
             result = repository_discovery(working_directory=repo_dir)
 
@@ -117,7 +123,7 @@ class TestRepositoryDiscovery:
         When repository_discovery is called
         Then returns the inferred best match
         """
-        # Given: two subdirs with .git dirs, subprocess returning different remotes
+        # Given: two subdirs with .git dirs, git.Repo returning different remotes
         sub1 = tmp_path / "repo1"
         sub1.mkdir()
         (sub1 / ".git").mkdir()
@@ -126,17 +132,12 @@ class TestRepositoryDiscovery:
         sub2.mkdir()
         (sub2 / ".git").mkdir()
 
-        call_count = 0
+        def _repo_factory(path: str) -> MagicMock:
+            if "repo1" in path:
+                return _mock_git_repo(_ADO_REMOTE)
+            return _mock_git_repo(_ADO_REMOTE_2)
 
-        def _side_effect(*args: Any, **kwargs: Any) -> MagicMock:
-            nonlocal call_count
-            call_count += 1
-            # First call for repo1, second for repo2
-            if call_count % 2 == 1:
-                return _git_success(_ADO_REMOTE)
-            return _git_success(_ADO_REMOTE_2)
-
-        with patch(_SUBPROCESS_PATCH, side_effect=_side_effect):
+        with patch(_REPO_PATCH, side_effect=_repo_factory):
             # When: called on the parent directory (discovers both)
             result = repository_discovery(working_directory=str(sub1))
 
@@ -152,10 +153,9 @@ class TestRepositoryDiscovery:
         When repository_discovery is called
         Then returns ActionableError with suggestion
         """
-        # Given: a tmp_path with no .git directory
-        with patch(_SUBPROCESS_PATCH, return_value=_git_failure()):
-            # When: repository_discovery is called
-            result = repository_discovery(working_directory=str(tmp_path))
+        # Given: a tmp_path with no .git directory — real discovery finds nothing
+        # When: repository_discovery is called
+        result = repository_discovery(working_directory=str(tmp_path))
 
         # Then: returns ActionableError
         assert isinstance(result, ActionableError), (
@@ -192,7 +192,7 @@ class TestRepositoryDiscovery:
         _setup_git_repo(tmp_path)
         monkeypatch.chdir(tmp_path)
 
-        with patch(_SUBPROCESS_PATCH, return_value=_git_success(_ADO_REMOTE)):
+        with patch(_REPO_PATCH, return_value=_mock_git_repo(_ADO_REMOTE)):
             # When: called with no working_directory
             result = repository_discovery()
 

@@ -14,7 +14,7 @@ Library API surface:
     ado_workflows.auth.get_current_user(client) -> UserIdentity
 
 I/O boundaries:
-    ado_workflows.discovery.subprocess.run (git CLI)
+    ado_workflows.discovery.Repo (GitPython)
     ado_workflows.auth.ConnectionFactory / DefaultAzureCredential (auth)
     client.git.get_pull_request_by_id, client.location.get_connection_data (SDK REST calls)
 """
@@ -39,7 +39,7 @@ from ado_workflows_mcp.tools.pr_identity import (
 
 _ADO_REMOTE = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo"
 _PR_URL = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo/pullrequest/42"
-_SUBPROCESS_PATCH = "ado_workflows.discovery.subprocess.run"
+_REPO_PATCH = "ado_workflows.discovery.Repo"
 _CONN_FACTORY_PATCH = "ado_workflows_mcp.tools._helpers.ConnectionFactory"
 _ADO_CLIENT_PATCH = "ado_workflows_mcp.tools._helpers.AdoClient"
 
@@ -51,15 +51,26 @@ _ESTABLISH_PR_PATCH = "ado_workflows_mcp.tools.pr_identity._lib_establish_pr"
 # ---------------------------------------------------------------------------
 
 
-def _git_success(remote: str = _ADO_REMOTE) -> MagicMock:
-    """Return a mock subprocess result for a successful git remote -v."""
-    return MagicMock(returncode=0, stdout=remote)
+def _mock_git_repo(remote_url: str = _ADO_REMOTE) -> MagicMock:
+    """Return a mock GitPython Repo with an origin remote."""
+    repo = MagicMock()
+    repo.remotes.origin.url = remote_url
+
+    def _bool(_self: object) -> bool:
+        return True
+
+    def _len(_self: object) -> int:
+        return 1
+
+    repo.remotes.__bool__ = _bool
+    repo.remotes.__len__ = _len
+    return repo
 
 
 def _setup_context(tmp_path: Any) -> None:
-    """Set up repository context with subprocess mocked."""
+    """Set up repository context with git.Repo mocked at the I/O edge."""
     (tmp_path / ".git").mkdir()
-    with patch(_SUBPROCESS_PATCH, return_value=_git_success()):
+    with patch(_REPO_PATCH, return_value=_mock_git_repo()):
         RepositoryContext.set(working_directory=str(tmp_path))
 
 
@@ -99,7 +110,7 @@ class TestGetPRAuthor:
          without requiring the consumer to construct SDK clients.
 
     MOCK BOUNDARY:
-        Mock:  subprocess.run (git CLI — context), ConnectionFactory (auth),
+        Mock:  git.Repo (GitPython — context), ConnectionFactory (auth),
                client.git.get_pull_request_by_id (SDK REST call)
         Real:  tool function, establish_pr_context, get_pr_author,
                UserIdentity construction
@@ -228,7 +239,7 @@ class TestGetCurrentUser:
          to understand the Azure DevOps auth chain.
 
     MOCK BOUNDARY:
-        Mock:  subprocess.run (git CLI — context), ConnectionFactory (auth),
+        Mock:  git.Repo (GitPython — context), ConnectionFactory (auth),
                client.location.get_connection_data (SDK REST call)
         Real:  tool function, get_current_user, UserIdentity construction
         Never: FastMCP framework

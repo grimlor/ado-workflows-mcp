@@ -9,6 +9,11 @@ with ``@mcp.tool()`` at import time.
 from __future__ import annotations
 
 import ado_workflows_mcp.tools._fixup_forward_refs as _fixup_forward_refs  # noqa: F401  # pyright: ignore[reportUnusedImport]  # side-effect: patches forward refs
+from ado_workflows_mcp.tools.data_gathering import (
+    list_commits as list_commits,
+    list_pull_requests as list_pull_requests,
+    query_work_items as query_work_items,
+)
 from ado_workflows_mcp.tools.pr_comments import (
     analyze_pr_comments as analyze_pr_comments,
     post_pr_comment as post_pr_comment,
@@ -73,11 +78,14 @@ __all__ = [
     "get_pr_work_items",
     "get_pull_request",
     "get_repository_context_status",
+    "list_commits",
     "list_pr_labels",
     "list_pr_reviewers",
+    "list_pull_requests",
     "post_pr_comment",
     "post_pr_comments",
     "post_rich_comments",
+    "query_work_items",
     "remove_pr_label",
     "remove_pr_reviewer",
     "reply_to_pr_comment",

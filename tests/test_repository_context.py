@@ -18,7 +18,7 @@ Library API surface (from ado_workflows.context):
     RepositoryContext (class with set/get/clear/status class methods)
 
 I/O boundary:
-    ado_workflows.discovery.subprocess.run (git CLI — used by set_repository_context)
+    ado_workflows.discovery.Repo (GitPython — used by set_repository_context)
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ from ado_workflows_mcp.tools.repository_context import (
 # ---------------------------------------------------------------------------
 
 _ADO_REMOTE = "https://dev.azure.com/TestOrg/TestProject/_git/TestRepo"
-_SUBPROCESS_PATCH = "ado_workflows.discovery.subprocess.run"
+_REPO_PATCH = "ado_workflows.discovery.Repo"
 
 
 # ---------------------------------------------------------------------------
@@ -48,14 +48,20 @@ _SUBPROCESS_PATCH = "ado_workflows.discovery.subprocess.run"
 # ---------------------------------------------------------------------------
 
 
-def _git_success(remote: str = _ADO_REMOTE) -> MagicMock:
-    """Return a mock subprocess result for a successful git remote -v."""
-    return MagicMock(returncode=0, stdout=remote)
+def _mock_git_repo(remote_url: str = _ADO_REMOTE) -> MagicMock:
+    """Return a mock GitPython Repo with an origin remote."""
+    repo = MagicMock()
+    repo.remotes.origin.url = remote_url
 
+    def _bool(_self: object) -> bool:
+        return True
 
-def _git_failure() -> MagicMock:
-    """Return a mock subprocess result for a non-git directory."""
-    return MagicMock(returncode=1, stderr="fatal: not a git repository")
+    def _len(_self: object) -> int:
+        return 1
+
+    repo.remotes.__bool__ = _bool
+    repo.remotes.__len__ = _len
+    return repo
 
 
 def _error_with_guidance() -> ActionableError:
@@ -78,7 +84,7 @@ class TestSetRepositoryContext:
     WHY: Eliminates redundant discovery subprocess calls across tool invocations.
 
     MOCK BOUNDARY:
-        Mock:  `subprocess.run` (git CLI — I/O boundary for discovery)
+        Mock:  `git.Repo` (GitPython — I/O boundary for discovery)
         Real:  tool function, `set_repository_context`, `RepositoryContext` caching,
                response formatting, `tmp_path` filesystem
         Never: FastMCP framework, library functions in our codebase
@@ -92,7 +98,7 @@ class TestSetRepositoryContext:
         """
         # Given: a tmp_path with .git directory
         (tmp_path / ".git").mkdir()
-        with patch(_SUBPROCESS_PATCH, return_value=_git_success()):
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
             # When: set_repository_context is called
             result = set_repository_context(working_directory=str(tmp_path))
 
@@ -110,10 +116,9 @@ class TestSetRepositoryContext:
         When set_repository_context is called
         Then returns error dict with success=False and suggestion
         """
-        # Given: a directory with no .git (subprocess returns failure)
-        with patch(_SUBPROCESS_PATCH, return_value=_git_failure()):
-            # When: called on a non-repo directory
-            result = set_repository_context(working_directory=str(tmp_path))
+        # Given: a directory with no .git (real discovery returns nothing)
+        # When: called on a non-repo directory
+        result = set_repository_context(working_directory=str(tmp_path))
 
         # Then: returns an error dict
         assert isinstance(result, dict), (
@@ -225,7 +230,7 @@ class TestGetRepositoryContextStatus:
         """
         # Given: context has been set via set_repository_context
         (tmp_path / ".git").mkdir()
-        with patch(_SUBPROCESS_PATCH, return_value=_git_success()):
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
             set_repository_context(working_directory=str(tmp_path))
 
         # When: status is queried
@@ -359,7 +364,7 @@ class TestClearRepositoryContext:
         """
         # Given: context has been set
         (tmp_path / ".git").mkdir()
-        with patch(_SUBPROCESS_PATCH, return_value=_git_success()):
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
             set_repository_context(working_directory=str(tmp_path))
 
         # When: clear is called

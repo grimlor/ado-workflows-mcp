@@ -44,7 +44,7 @@ Public API surface (from src/ado_workflows_mcp/tools/pr_lifecycle.py):
         -> list[WorkItemRef] | ActionableError
 
 I/O boundaries:
-    ado_workflows.discovery.subprocess.run (git CLI)
+    ado_workflows.discovery.Repo (GitPython)
     ado_workflows.auth.ConnectionFactory / DefaultAzureCredential (auth)
     client.git.get_pull_request_by_id, client.git.update_pull_request,
     client.git.create_pull_request_reviewer, client.git.delete_pull_request_reviewer,
