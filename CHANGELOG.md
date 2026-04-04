@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.7.0 (2026-04-04)
+
+### Continuous Integration
+
+- Add --cov-branch to CI coverage for parity with local task cov
+  ([`0413855`](https://github.com/grimlor/ado-workflows-mcp/commit/0413855dd78cbf953588f3a74ab5ea77ac196dd7))
+
+### Features
+
+- **data-gathering**: Add list_pull_requests, query_work_items, list_commits MCP tools
+  ([`56ab3a1`](https://github.com/grimlor/ado-workflows-mcp/commit/56ab3a18f1f95b857b4b356b3d9473716a2f4f19))
+
+### Testing
+
+- Add branch coverage for ai_guidance pass-through in all MCP tools
+  ([`9cc9551`](https://github.com/grimlor/ado-workflows-mcp/commit/9cc9551871982918a509928914bf48f901c4b5f7))
+
+
 ## v0.6.1 (2026-04-01)
 
 ### Bug Fixes
