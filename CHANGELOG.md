@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.7.1 (2026-04-05)
+
+### Bug Fixes
+
+- Bump ado-workflows minimum to >=0.7.2\n\nEnsures the query_by_wiql TeamContext fix is included.
+  ([`87907c2`](https://github.com/grimlor/ado-workflows-mcp/commit/87907c2ee86c38cdda462db4ddc3d35350afa88e))
+
+
 ## v0.7.0 (2026-04-04)
 
 ### Continuous Integration
