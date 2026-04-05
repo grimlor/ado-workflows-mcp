@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "ado-workflows"
-version = "0.7.1"
+version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "actionable-errors" },
@@ -21,14 +21,14 @@ dependencies = [
     { name = "azure-identity" },
     { name = "gitpython" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/00/c9/e78b063ce5570da6750c5541463d2fb1bde52b1562a8208819d4489dc686/ado_workflows-0.7.1.tar.gz", hash = "sha256:c69fc6f08207b09766e198ff9eb1717465056b4834ced1388e866dad074dee9f", size = 175371, upload-time = "2026-04-04T04:39:24.529Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/b8/127ac9090254f705fada20a0217e65ee2e1286d7d0e2cb7d9c594cb1aa1d/ado_workflows-0.7.2.tar.gz", hash = "sha256:f3c25f1de0b2d74939e10d68e7de0a81af1658a1133fa0748f91b5b91ef9ddae", size = 175635, upload-time = "2026-04-05T00:50:08.736Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9e/40/af63beda1f56c037431cb31a7001f1391ea0800400a25205161c3dfd69ee/ado_workflows-0.7.1-py3-none-any.whl", hash = "sha256:52f4896e24c381c20ed50885814e19fa2a347002278c9556c0c9aa03f705afce", size = 45733, upload-time = "2026-04-04T04:39:23.048Z" },
+    { url = "https://files.pythonhosted.org/packages/6f/e9/06e102049b6be1b5a27eab47138419c6d59643b91e386ae5b3275c8100b3/ado_workflows-0.7.2-py3-none-any.whl", hash = "sha256:3135c55359cfdda7f168bd7388dabeeb5b4c97b65ad0b7308ce20a86ea6f76b9", size = 45758, upload-time = "2026-04-05T00:50:07.144Z" },
 ]
 
 [[package]]
 name = "ado-workflows-mcp"
-version = "0.6.1"
+version = "0.7.1"
 source = { editable = "." }
 dependencies = [
     { name = "ado-workflows" },
@@ -49,7 +49,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ado-workflows", specifier = ">=0.7.0" },
+    { name = "ado-workflows", specifier = ">=0.7.2" },
     { name = "fastmcp", specifier = ">=2.0.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4,<5" },
     { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1,<2" },
