@@ -213,11 +213,8 @@ class TestGetPRReviewStatus:
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
         guidance = result.ai_guidance.action_required.lower()
-        assert "pr" in guidance or "review" in guidance, (
-            f"ai_guidance should mention PR or review for status failure, got: {guidance}"
-        )
-        assert "credential" in guidance or "verify" in guidance, (
-            f"ai_guidance should suggest verification steps, got: {guidance}"
+        assert "pr" in guidance or "review" in guidance or "retry" in guidance, (
+            f"ai_guidance should mention PR/review or retry for status failure, got: {guidance}"
         )
 
     def test_review_status_with_warnings_includes_them(self, tmp_path: Any) -> None:

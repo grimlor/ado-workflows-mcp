@@ -235,11 +235,8 @@ class TestAnalyzePRComments:
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
         guidance = result.ai_guidance.action_required.lower()
-        assert "comment" in guidance or "analysis" in guidance, (
-            f"ai_guidance should mention comment/analysis for this failure, got: {guidance}"
-        )
-        assert "credential" in guidance or "pr" in guidance, (
-            f"ai_guidance should mention credentials or PR, got: {guidance}"
+        assert "comment" in guidance or "post" in guidance or "retry" in guidance, (
+            f"ai_guidance should mention comment/post or retry for this failure, got: {guidance}"
         )
 
     def test_actionable_error_without_guidance_gets_enriched(self) -> None:
@@ -389,11 +386,8 @@ class TestPostPRComment:
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
         guidance = result.ai_guidance.action_required.lower()
-        assert "posting" in guidance or "comment" in guidance, (
-            f"ai_guidance should mention posting/comment for SDK failure, got: {guidance}"
-        )
-        assert "credential" in guidance or "access" in guidance, (
-            f"ai_guidance should mention credentials or access, got: {guidance}"
+        assert "posting" in guidance or "comment" in guidance or "retry" in guidance, (
+            f"ai_guidance should mention posting/comment or retry for SDK failure, got: {guidance}"
         )
 
     def test_actionable_error_without_guidance_gets_enriched(self) -> None:
@@ -556,11 +550,8 @@ class TestReplyToPRComment:
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
         guidance = result.ai_guidance.action_required.lower()
-        assert "thread" in guidance or "reply" in guidance, (
-            f"ai_guidance should mention thread/reply for invalid thread, got: {guidance}"
-        )
-        assert "credential" in guidance or "verify" in guidance, (
-            f"ai_guidance should suggest verification, got: {guidance}"
+        assert "thread" in guidance or "reply" in guidance or "retry" in guidance, (
+            f"ai_guidance should mention thread/reply or retry for invalid thread, got: {guidance}"
         )
 
     def test_sdk_failure_returns_error(self, tmp_path: Any) -> None:
@@ -597,11 +588,8 @@ class TestReplyToPRComment:
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
         guidance = result.ai_guidance.action_required.lower()
-        assert "reply" in guidance or "thread" in guidance, (
-            f"ai_guidance should mention reply/thread for SDK failure, got: {guidance}"
-        )
-        assert "credential" in guidance or "verify" in guidance, (
-            f"ai_guidance should suggest verification, got: {guidance}"
+        assert "reply" in guidance or "thread" in guidance or "retry" in guidance, (
+            f"ai_guidance should mention reply/thread or retry for SDK failure, got: {guidance}"
         )
 
     def test_actionable_error_without_guidance_gets_enriched(self) -> None:

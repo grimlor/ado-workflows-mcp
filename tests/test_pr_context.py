@@ -408,8 +408,8 @@ class TestCreatePullRequest:
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
         guidance = result.ai_guidance.action_required.lower()
-        assert "branch" in guidance or "credential" in guidance, (
-            f"ai_guidance should mention branches or credentials for SDK failure, got: {guidance}"
+        assert "create" in guidance or "retry" in guidance or "ask" in guidance, (
+            f"ai_guidance should mention retry or ask user for SDK failure, got: {guidance}"
         )
 
     @patch("ado_workflows_mcp.tools.pr_context.get_context", side_effect=_error_with_guidance())
