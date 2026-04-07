@@ -429,3 +429,42 @@ class TestCreatePullRequest:
         assert result.ai_guidance.action_required == "pre-set guidance", (
             f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
+
+    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
+        """
+        Given library raises ActionableError without ai_guidance,
+        When create_pull_request is called,
+        Then returns the error with ai_guidance enriched by the MCP layer.
+        """
+        # Given: context resolves, but library raises ActionableError with no guidance
+        (tmp_path / ".git").mkdir()
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
+            RepositoryContext.set(working_directory=str(tmp_path))
+
+        lib_error = ActionableError.validation(
+            service="AzureDevOps",
+            field_name="source_branch",
+            reason="Branch name is empty",
+        )
+        mock_factory = _mock_connection_factory()
+        with (
+            patch(_CONN_FACTORY_PATCH, mock_factory),
+            patch("ado_workflows_mcp.tools._helpers.AdoClient"),
+            patch(
+                "ado_workflows_mcp.tools.pr_context._lib_create_pr",
+                side_effect=lib_error,
+            ),
+        ):
+            # When: create_pull_request is called
+            result = create_pull_request(
+                source_branch="",
+                target_branch="main",
+            )
+
+        # Then: returns ActionableError with ai_guidance enriched
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.ai_guidance is not None, (
+            "Expected ai_guidance to be enriched for errors without guidance"
+        )
