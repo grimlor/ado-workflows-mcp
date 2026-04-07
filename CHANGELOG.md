@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v0.8.0 (2026-04-07)
+
+### Chores
+
+- Update uv.lock
+  ([`9363c09`](https://github.com/grimlor/ado-workflows-mcp/commit/9363c09b020babf8a74141697472954e12fff40a))
+
+### Features
+
+- **tools**: Add list_repo_items and get_repo_file_content MCP tools\n\nFR5b — Remote Repository
+  Content Inspection (MCP layer).\n\nNew tools in tools/repo_content.py:\n- list_repo_items — list
+  files/folders at any path on any branch\n- get_repo_file_content — fetch file content from any
+  ref\n\nBoth resolve repo/project from context or explicit params.\nBumps ado-workflows dependency
+  to >=0.8.0.\n\n188 tests, 100% coverage, 36 registered tools, task check green."
+  ([`0a05e14`](https://github.com/grimlor/ado-workflows-mcp/commit/0a05e14d7df70bfa63e5f2f8304c680251b863c3))
+
+
 ## v0.7.1 (2026-04-05)
 
 ### Bug Fixes
