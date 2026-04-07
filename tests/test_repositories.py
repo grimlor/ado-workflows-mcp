@@ -239,37 +239,6 @@ class TestRepositoryDiscovery:
             f"ai_guidance should suggest narrowing search, got: {guidance}"
         )
 
-    def test_actionable_error_without_guidance_gets_enriched(self, tmp_path: Any) -> None:
-        """
-        Given the library raises ActionableError without ai_guidance
-        When repository_discovery is called
-        Then returns the error with ai_guidance enriched
-        """
-        # Given: library raises ActionableError with no ai_guidance
-        bare_error = ActionableError(
-            error="Git not found",
-            error_type="VALIDATION",
-            service="ado-workflows",
-        )
-        with patch(
-            "ado_workflows_mcp.tools.repositories.discover_repositories",
-            side_effect=bare_error,
-        ):
-            # When: called
-            result = repository_discovery(working_directory=str(tmp_path))
-
-        # Then: returns ActionableError with ai_guidance enriched
-        assert isinstance(result, ActionableError), (
-            f"Expected ActionableError, got {type(result).__name__}: {result}"
-        )
-        assert result.ai_guidance is not None, (
-            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
-        )
-        guidance = result.ai_guidance.action_required.lower()
-        assert "discovery" in guidance or "error" in guidance or "retry" in guidance, (
-            f"ai_guidance should mention discovery/error/retry, got: {guidance}"
-        )
-
     @patch(
         "ado_workflows_mcp.tools.repositories.discover_repositories",
         side_effect=_error_with_guidance(),

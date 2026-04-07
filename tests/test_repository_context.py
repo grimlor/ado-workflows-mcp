@@ -401,37 +401,6 @@ class TestClearRepositoryContext:
             f"Expected dict result, got {type(result).__name__}: {result}"
         )
 
-    def test_actionable_error_without_guidance_gets_enriched(self) -> None:
-        """
-        Given the library raises ActionableError without ai_guidance
-        When clear_repository_context is called
-        Then returns the error with ai_guidance enriched
-        """
-        # Given: library raises ActionableError with no ai_guidance
-        bare_error = ActionableError(
-            error="Clear operation failed",
-            error_type="INTERNAL",
-            service="ado-workflows",
-        )
-        with patch(
-            "ado_workflows_mcp.tools.repository_context._lib_clear",
-            side_effect=bare_error,
-        ):
-            # When: called
-            result = clear_repository_context()
-
-        # Then: returns ActionableError with ai_guidance enriched
-        assert isinstance(result, ActionableError), (
-            f"Expected ActionableError, got {type(result).__name__}: {result}"
-        )
-        assert result.ai_guidance is not None, (
-            f"Expected ai_guidance to be enriched, got None. Error: {result.error}"
-        )
-        guidance = result.ai_guidance.action_required.lower()
-        assert "clear" in guidance or "retry" in guidance or "error" in guidance, (
-            f"ai_guidance should mention clear/retry/error, got: {guidance}"
-        )
-
     @patch(
         "ado_workflows_mcp.tools.repository_context._lib_clear", side_effect=_error_with_guidance()
     )

@@ -102,10 +102,6 @@ def clear_repository_context() -> dict[str, Any] | ActionableError:
     try:
         return _lib_clear()
     except ActionableError as exc:
-        if exc.ai_guidance is None:
-            exc.ai_guidance = AIGuidance(
-                action_required=("Context clear failed. Review error details and retry."),
-            )
         return exc
     except Exception as exc:
         return ActionableError.internal(

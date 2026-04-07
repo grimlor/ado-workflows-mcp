@@ -98,12 +98,6 @@ def create_pull_request(
             is_draft=is_draft,
         )
     except ActionableError as exc:
-        if exc.ai_guidance is None:
-            exc.ai_guidance = AIGuidance(
-                action_required=(
-                    "PR creation encountered an error. Check branches and credentials."
-                ),
-            )
         return exc
     except Exception as exc:
         return ActionableError.internal(

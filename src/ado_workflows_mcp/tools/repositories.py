@@ -69,12 +69,6 @@ def repository_discovery(
             )
         return target
     except ActionableError as exc:
-        if exc.ai_guidance is None:
-            exc.ai_guidance = AIGuidance(
-                action_required=(
-                    "Repository discovery encountered an error. Check the error details and retry."
-                ),
-            )
         return exc
     except Exception as exc:
         return ActionableError.internal(
