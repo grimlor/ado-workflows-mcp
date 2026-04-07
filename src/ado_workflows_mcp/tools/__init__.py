@@ -53,6 +53,10 @@ from ado_workflows_mcp.tools.pr_review import (
     analyze_pending_reviews as analyze_pending_reviews,
     get_pr_review_status as get_pr_review_status,
 )
+from ado_workflows_mcp.tools.repo_content import (
+    get_repo_file_content as get_repo_file_content,
+    list_repo_items as list_repo_items,
+)
 from ado_workflows_mcp.tools.repositories import repository_discovery as repository_discovery
 from ado_workflows_mcp.tools.repository_context import (
     clear_repository_context as clear_repository_context,
@@ -77,11 +81,13 @@ __all__ = [
     "get_pr_review_status",
     "get_pr_work_items",
     "get_pull_request",
+    "get_repo_file_content",
     "get_repository_context_status",
     "list_commits",
     "list_pr_labels",
     "list_pr_reviewers",
     "list_pull_requests",
+    "list_repo_items",
     "post_pr_comment",
     "post_pr_comments",
     "post_rich_comments",
