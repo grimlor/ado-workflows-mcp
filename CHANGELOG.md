@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v0.8.1 (2026-04-07)
+
+### Bug Fixes
+
+- Bump ado-workflows to >=0.9.0 and update ai_guidance assertions\n\nado-workflows 0.9.0 attaches
+  ai_guidance at the library level via\nclassify_ado_error, so MCP tool errors now carry
+  library-provided\nguidance instead of MCP-layer fallback text. Updated 7 test\nassertions to match
+  the new guidance wording.\n\n188 tests, 100% coverage, task check green."
+  ([`50cd974`](https://github.com/grimlor/ado-workflows-mcp/commit/50cd9744ba8f7243d97f59809c0d6baa73646a92))
+
+
 ## v0.8.0 (2026-04-07)
 
 ### Chores
