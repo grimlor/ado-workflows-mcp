@@ -36,6 +36,7 @@ dev = [
     "pytest-asyncio>=0.24,<1",
     "pytest-cov>=6,<7",
     "pytest-mock>=3.11.0",
+    "pytest-xdist>=3,<4",
     "ruff>=0.8,<1",
     "taskipy>=1.14,<2",
     "pre-commit>=4,<5",
@@ -128,7 +129,7 @@ testpaths = ["tests"]
 python_files = ["*_test.py", "test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --strict-markers -m 'not integration and not live'"
+addopts = "-v --strict-markers -m 'not integration and not live' -n auto"
 asyncio_mode = "auto"
 markers = [
     "integration: marks tests requiring external services",
