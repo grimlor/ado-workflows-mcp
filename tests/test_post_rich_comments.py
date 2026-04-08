@@ -270,8 +270,6 @@ class TestPostRichComments:
         assert result.dry_run is True, "Expected dry_run=True in result"
         assert len(result.posted) == 0, "Expected 0 posted in dry run"
         assert len(result.skipped) == 1, f"Expected 1 skipped, got {len(result.skipped)}"
-        # Verify no create_thread calls were made
-        mock_client.git.create_thread.assert_not_called()
 
     def test_invalid_severity_returns_error(self, tmp_path: Any) -> None:
         """

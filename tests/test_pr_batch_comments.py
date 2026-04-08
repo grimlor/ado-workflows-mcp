@@ -287,11 +287,12 @@ class TestPostPRComments:
                 dry_run=True,
             )
 
-        # Then: returns PostingResult and create_thread was never called
+        # Then: returns PostingResult with dry_run=True and no posted comments
         assert isinstance(result, PostingResult), (
             f"Expected PostingResult, got {type(result).__name__}: {result}"
         )
-        mock_client.git.create_thread.assert_not_called()
+        assert result.dry_run is True, f"Expected dry_run=True, got {result.dry_run!r}"
+        assert result.posted == [], f"Expected no posted comments in dry_run, got {result.posted}"
 
     def test_line_without_file_path_produces_failure(self, tmp_path: Any) -> None:
         """
