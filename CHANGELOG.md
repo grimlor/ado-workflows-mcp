@@ -2,6 +2,43 @@
 
 <!-- version list -->
 
+## v0.9.0 (2026-04-09)
+
+### Build System
+
+- Add pytest-xdist for parallel test execution
+  ([`24c56a3`](https://github.com/grimlor/ado-workflows-mcp/commit/24c56a3719a6e0b0bd8d06ddd10fbe2e69ad8173))
+
+### Features
+
+- **work-items**: Add FR6b work item MCP tools
+  ([`4cecd95`](https://github.com/grimlor/ado-workflows-mcp/commit/4cecd959d6e41bdf0c6b2bb27f950947f2230497))
+
+### Refactoring
+
+- Remove 3 dead ai_guidance enrichment guards\n\nWith ado-workflows 0.9.0, classify_ado_error always
+  attaches\nai_guidance. Removed unreachable `if exc.ai_guidance is None:`\nguards in
+  create_pull_request, repository_discovery, and\nclear_repository_context — plus 2 contrived tests
+  that covered\nthem. 30 live guards remain (validation/context error paths).\n\n186 tests, 100%
+  coverage, task check green."
+  ([`19c59f1`](https://github.com/grimlor/ado-workflows-mcp/commit/19c59f1f30c62759ecf1bcee10417fc200cd2090))
+
+### Testing
+
+- Replace assert_not_called with behavioral dry_run assertions\n\nBDD audit — replace mock call
+  assertions with output assertions\nin dry_run tests:\n\n- test_pr_batch_comments.py: assert
+  dry_run=True + posted==[]\n instead of assert_not_called on create_thread\n-
+  test_post_rich_comments.py: remove redundant assert_not_called\n (dry_run=True + posted=0 +
+  skipped=1 already covered)\n\n186 tests, 100% coverage, task check green."
+  ([`e04b492`](https://github.com/grimlor/ado-workflows-mcp/commit/e04b4921aa32d0bc7d54240b22da2f854c0eb6bd))
+
+- **pr_context**: Cover ai_guidance enrichment for errors without guidance\n\nAdds
+  test_actionable_error_without_guidance_gets_enriched for\ncreate_pull_request — exercises the
+  defensive guard at line 102\nthat attaches ai_guidance when the library raises
+  ActionableError\nwithout it (e.g., validation errors).\n\n189 tests, 100% coverage."
+  ([`63b9dfe`](https://github.com/grimlor/ado-workflows-mcp/commit/63b9dfed7595a28677375bb6be8f5b3afedf2686))
+
+
 ## v0.8.1 (2026-04-07)
 
 ### Bug Fixes
