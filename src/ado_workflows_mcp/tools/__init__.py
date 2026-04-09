@@ -63,6 +63,15 @@ from ado_workflows_mcp.tools.repository_context import (
     get_repository_context_status as get_repository_context_status,
     set_repository_context as set_repository_context,
 )
+from ado_workflows_mcp.tools.work_items import (
+    clone_work_item as clone_work_item,
+    create_work_item as create_work_item,
+    get_work_item as get_work_item,
+    get_work_item_type_fields as get_work_item_type_fields,
+    get_work_items as get_work_items,
+    move_work_items_to_sprint as move_work_items_to_sprint,
+    update_work_item as update_work_item,
+)
 
 __all__ = [
     "abandon_pull_request",
@@ -71,8 +80,10 @@ __all__ = [
     "analyze_pending_reviews",
     "analyze_pr_comments",
     "clear_repository_context",
+    "clone_work_item",
     "complete_pull_request",
     "create_pull_request",
+    "create_work_item",
     "establish_pr_context",
     "get_current_user",
     "get_pr_author",
@@ -83,11 +94,15 @@ __all__ = [
     "get_pull_request",
     "get_repo_file_content",
     "get_repository_context_status",
+    "get_work_item",
+    "get_work_item_type_fields",
+    "get_work_items",
     "list_commits",
     "list_pr_labels",
     "list_pr_reviewers",
     "list_pull_requests",
     "list_repo_items",
+    "move_work_items_to_sprint",
     "post_pr_comment",
     "post_pr_comments",
     "post_rich_comments",
@@ -101,4 +116,5 @@ __all__ = [
     "set_pr_draft_status",
     "set_repository_context",
     "update_pull_request",
+    "update_work_item",
 ]
