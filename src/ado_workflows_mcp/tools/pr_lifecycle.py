@@ -85,6 +85,7 @@ def update_pull_request(
     title: str | None = None,
     description: str | None = None,
     working_directory: str | None = None,
+    work_item_ids: list[int] | None = None,
 ) -> PullRequestDetail | ActionableError:
     """
     Update title and/or description of an existing PR.
@@ -94,6 +95,7 @@ def update_pull_request(
         title: New title (optional).
         description: New description (optional).
         working_directory: Optional path for context resolution.
+        work_item_ids: Optional list of work item IDs to link to the PR.
 
     """
     try:
@@ -106,6 +108,7 @@ def update_pull_request(
             project=pr_ctx.project,
             title=title,
             description=description,
+            work_item_ids=work_item_ids,
         )
     except ActionableError as exc:
         if exc.ai_guidance is None:

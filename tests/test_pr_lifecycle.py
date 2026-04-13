@@ -1281,3 +1281,113 @@ class TestGetPRWorkItems:
         assert isinstance(result, ActionableError), (
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
+
+
+# ---------------------------------------------------------------------------
+# TestUpdatePRWithWorkItems
+# ---------------------------------------------------------------------------
+
+
+class TestUpdatePRWithWorkItems:
+    """
+    REQUIREMENT: update_pull_request passes work_item_ids to the library layer.
+
+    WHO: Agents and automation updating PRs with work item links.
+    WHAT: (1) When work_item_ids is provided, they are forwarded to the library
+          (2) When work_item_ids is None, behavior is unchanged
+
+    MOCK BOUNDARY:
+        Mock:  ConnectionFactory, AdoClient, client.git.update_pull_request,
+               client.work_items.update_work_item
+        Real:  MCP tool function, PR context resolution from URL
+        Never: FastMCP framework
+    """
+
+    @patch(_ADO_CLIENT_PATCH)
+    @patch(_CONN_FACTORY_PATCH)
+    def test_work_item_ids_forwarded_to_library(
+        self, mock_cf: MagicMock, mock_ac: MagicMock
+    ) -> None:
+        """
+        Given work_item_ids=[456]
+        When update_pull_request is called
+        Then the library receives work_item_ids and links the work item
+        """
+        # Given: SDK returns updated PR with repository metadata
+        sdk_pr = MagicMock()
+        sdk_pr.pull_request_id = 42
+        sdk_pr.title = "Updated"
+        sdk_pr.description = None
+        sdk_pr.url = _PR_URL
+        sdk_pr.source_ref_name = "refs/heads/feature/x"
+        sdk_pr.target_ref_name = "refs/heads/main"
+        sdk_pr.status = "active"
+        sdk_pr.is_draft = False
+        sdk_pr.merge_status = "succeeded"
+        sdk_pr.creation_date = "2026-03-15T10:00:00Z"
+        sdk_pr.created_by = MagicMock(display_name="Alice")
+        sdk_pr.reviewers = []
+        sdk_pr.labels = []
+        sdk_pr.work_item_refs = []
+        sdk_pr.repository = MagicMock()
+        sdk_pr.repository.id = "repo-guid"
+        sdk_pr.repository.project = MagicMock()
+        sdk_pr.repository.project.id = "proj-guid"
+        mock_ac.return_value.git.update_pull_request.return_value = sdk_pr
+        mock_ac.return_value.work_items.update_work_item.return_value = MagicMock()
+
+        # When: update_pull_request is called with work_item_ids
+        result = update_pull_request(
+            pr_url_or_id=_PR_URL,
+            title="Updated",
+            work_item_ids=[456],
+        )
+
+        # Then: returns PullRequestDetail
+        assert isinstance(result, PullRequestDetail), (
+            f"Expected PullRequestDetail, got {type(result).__name__}: {result}"
+        )
+        assert result.pr_id == 42, f"Expected pr_id=42, got {result.pr_id}"
+        # Then: work item was linked
+        mock_ac.return_value.work_items.update_work_item.assert_called_once()
+
+    @patch(_ADO_CLIENT_PATCH)
+    @patch(_CONN_FACTORY_PATCH)
+    def test_no_work_item_ids_means_no_wit_calls(
+        self, mock_cf: MagicMock, mock_ac: MagicMock
+    ) -> None:
+        """
+        Given work_item_ids is not provided
+        When update_pull_request is called
+        Then no WIT calls are made
+        """
+        # Given: SDK returns updated PR
+        sdk_pr = MagicMock()
+        sdk_pr.pull_request_id = 42
+        sdk_pr.title = "Updated"
+        sdk_pr.description = None
+        sdk_pr.url = _PR_URL
+        sdk_pr.source_ref_name = "refs/heads/feature/x"
+        sdk_pr.target_ref_name = "refs/heads/main"
+        sdk_pr.status = "active"
+        sdk_pr.is_draft = False
+        sdk_pr.merge_status = "succeeded"
+        sdk_pr.creation_date = "2026-03-15T10:00:00Z"
+        sdk_pr.created_by = MagicMock(display_name="Alice")
+        sdk_pr.reviewers = []
+        sdk_pr.labels = []
+        sdk_pr.work_item_refs = []
+        mock_ac.return_value.git.update_pull_request.return_value = sdk_pr
+
+        # When: called without work_item_ids
+        result = update_pull_request(
+            pr_url_or_id=_PR_URL,
+            title="Updated",
+        )
+
+        # Then: returns PullRequestDetail
+        assert isinstance(result, PullRequestDetail), (
+            f"Expected PullRequestDetail, got {type(result).__name__}: {result}"
+        )
+        # Then: no WIT calls were made
+        mock_ac.return_value.work_items.update_work_item.assert_not_called()

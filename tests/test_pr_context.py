@@ -429,3 +429,102 @@ class TestCreatePullRequest:
         assert result.ai_guidance.action_required == "pre-set guidance", (
             f"Expected original guidance, got: {result.ai_guidance.action_required}"
         )
+
+
+# ---------------------------------------------------------------------------
+# TestCreatePRWithWorkItems
+# ---------------------------------------------------------------------------
+
+
+class TestCreatePRWithWorkItems:
+    """
+    REQUIREMENT: create_pull_request passes work_item_ids to the library layer.
+
+    WHO: Agents and automation creating PRs with linked work items.
+    WHAT: (1) When work_item_ids is provided, they are forwarded to the library
+          (2) When work_item_ids is None, behavior is unchanged
+
+    MOCK BOUNDARY:
+        Mock:  `git.Repo` (GitPython — context), `ConnectionFactory` (auth),
+               `client.git.create_pull_request` (SDK REST call),
+               `client.work_items.update_work_item` (WIT REST call)
+        Real:  tool function, `get_client`, `get_context`, response formatting
+        Never: FastMCP framework
+    """
+
+    def test_work_item_ids_forwarded_to_library(self, tmp_path: Any) -> None:
+        """
+        Given work_item_ids=[123]
+        When create_pull_request is called
+        Then the library receives work_item_ids and links the work item
+        """
+        # Given: repository context is set
+        (tmp_path / ".git").mkdir()
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
+            RepositoryContext.set(working_directory=str(tmp_path))
+
+        # Given: auth and SDK mocked with repository metadata on response
+        mock_factory = _mock_connection_factory()
+        with (
+            patch(_CONN_FACTORY_PATCH, mock_factory),
+            patch("ado_workflows_mcp.tools._helpers.AdoClient") as mock_ado_client_cls,
+        ):
+            mock_client = Mock()
+            sdk_response = _mock_sdk_pr_response()
+            sdk_response.repository = Mock()
+            sdk_response.repository.id = "repo-guid"
+            sdk_response.repository.project = Mock()
+            sdk_response.repository.project.id = "proj-guid"
+            mock_client.git.create_pull_request.return_value = sdk_response
+            mock_client.work_items.update_work_item.return_value = Mock()
+            mock_ado_client_cls.return_value = mock_client
+
+            # When: create_pull_request is called with work_item_ids
+            result = create_pull_request(
+                source_branch="feature/widget",
+                target_branch="main",
+                title="feat: add widget",
+                work_item_ids=[123],
+            )
+
+        # Then: returns CreatedPR
+        assert isinstance(result, CreatedPR), (
+            f"Expected CreatedPR, got {type(result).__name__}: {result}"
+        )
+        assert result.pr_id == 42, f"Expected pr_id=42, got {result.pr_id}"
+        # Then: work item was linked
+        mock_client.work_items.update_work_item.assert_called_once()
+
+    def test_no_work_item_ids_means_no_wit_calls(self, tmp_path: Any) -> None:
+        """
+        Given work_item_ids is not provided
+        When create_pull_request is called
+        Then no WIT calls are made
+        """
+        # Given: repository context is set
+        (tmp_path / ".git").mkdir()
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
+            RepositoryContext.set(working_directory=str(tmp_path))
+
+        # Given: auth and SDK mocked
+        mock_factory = _mock_connection_factory()
+        with (
+            patch(_CONN_FACTORY_PATCH, mock_factory),
+            patch("ado_workflows_mcp.tools._helpers.AdoClient") as mock_ado_client_cls,
+        ):
+            mock_client = Mock()
+            mock_client.git.create_pull_request.return_value = _mock_sdk_pr_response()
+            mock_ado_client_cls.return_value = mock_client
+
+            # When: called without work_item_ids
+            result = create_pull_request(
+                source_branch="feature/widget",
+                target_branch="main",
+            )
+
+        # Then: returns CreatedPR
+        assert isinstance(result, CreatedPR), (
+            f"Expected CreatedPR, got {type(result).__name__}: {result}"
+        )
+        # Then: no WIT calls were made
+        mock_client.work_items.update_work_item.assert_not_called()

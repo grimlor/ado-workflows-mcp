@@ -68,6 +68,7 @@ def create_pull_request(
     description: str | None = None,
     is_draft: bool = False,
     working_directory: str | None = None,
+    work_item_ids: list[int] | None = None,
 ) -> CreatedPR | ActionableError:
     """
     Create a new pull request via the Azure DevOps SDK.
@@ -82,6 +83,7 @@ def create_pull_request(
         description: Optional PR description.
         is_draft: Whether to create as a draft PR.
         working_directory: Optional path for context resolution.
+        work_item_ids: Optional list of work item IDs to link to the PR.
 
     """
     try:
@@ -96,6 +98,7 @@ def create_pull_request(
             title=title,
             description=description,
             is_draft=is_draft,
+            work_item_ids=work_item_ids,
         )
     except ActionableError as exc:
         return exc
