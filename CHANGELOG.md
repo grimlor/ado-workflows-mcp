@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.10.0 (2026-04-13)
+
+### Chores
+
+- Committing lockfile
+  ([`1b11407`](https://github.com/grimlor/ado-workflows-mcp/commit/1b11407d3d1f12e7d0c3f9ea994e5b29e7fe9000))
+
+### Features
+
+- **tools**: Add work_item_ids to create and update PR tools
+  ([`6b4aee8`](https://github.com/grimlor/ado-workflows-mcp/commit/6b4aee888824d45a14cdae0cfcbc3bded6da85b4))
+
+
 ## v0.9.0 (2026-04-09)
 
 ### Build System
