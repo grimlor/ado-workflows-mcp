@@ -342,11 +342,13 @@ class TestCreatePullRequest:
 
     def test_missing_context_returns_error(self) -> None:
         """
-        Given missing context
-        When create_pull_request is called
-        Then returns ActionableError with suggestion and ai_guidance
+        Given missing repository context
+        When create_pull_request is called without working_directory
+        Then returns ActionableError whose ai_guidance directs the agent to
+            either pass working_directory or call set_repository_context
+            (the two agent-executable remedies for missing context)
         """
-        # Given: no context set
+        # Given: no context set -- get_context() will raise before SDK calls
         RepositoryContext.clear()
 
         # When: create_pull_request called without context
@@ -355,7 +357,7 @@ class TestCreatePullRequest:
             target_branch="main",
         )
 
-        # Then: returns ActionableError
+        # Then: returns ActionableError propagated from RepositoryContext.get
         assert isinstance(result, ActionableError), (
             f"Expected ActionableError, got {type(result).__name__}: {result}"
         )
@@ -365,9 +367,13 @@ class TestCreatePullRequest:
         assert result.ai_guidance is not None, (
             f"Expected ai_guidance on error, got None. Error: {result.error}"
         )
-        guidance = result.ai_guidance.action_required.lower()
-        assert "branch" in guidance or "credential" in guidance, (
-            f"ai_guidance should mention branches or credentials, got: {guidance}"
+        # Failure occurs in RepositoryContext.get (no cache + no override + cwd
+        # has no ADO repo), not in the SDK -- guidance must name the context
+        # remedies, not branch/credential remedies.
+        action = result.ai_guidance.action_required
+        assert "working_directory" in action and "set_repository_context" in action, (
+            f"Expected ai_guidance to name both context-resolution remedies "
+            f"(working_directory parameter and set_repository_context), got: {action!r}"
         )
 
     def test_sdk_failure_returns_error(self, tmp_path: Any) -> None:
@@ -428,6 +434,55 @@ class TestCreatePullRequest:
         assert result.ai_guidance is not None, "Expected ai_guidance preserved"
         assert result.ai_guidance.action_required == "pre-set guidance", (
             f"Expected original guidance, got: {result.ai_guidance.action_required}"
+        )
+
+    def test_unexpected_exception_returns_internal_error(self, tmp_path: Any) -> None:
+        """
+        Given a non-ActionableError exception escapes the lib boundary
+        When create_pull_request is called
+        Then the wrapper's defensive ``except Exception`` enriches it as
+            ``ActionableError.internal`` with branch / credential guidance
+            (this is the catch-all for anything that bypasses the lib's own
+            ActionableError contract)
+        """
+        # Given: repository context is set so get_context/get_client succeed
+        (tmp_path / ".git").mkdir()
+        with patch(_REPO_PATCH, return_value=_mock_git_repo()):
+            RepositoryContext.set(working_directory=str(tmp_path))
+
+        # Given: _lib_create_pr raises a non-ActionableError (bypasses the
+        #        library's own ActionableError wrapping). We patch the lib
+        #        symbol as imported into pr_context so we hit the wrapper's
+        #        defensive ``except Exception`` branch directly.
+        mock_factory = _mock_connection_factory()
+        with (
+            patch(_CONN_FACTORY_PATCH, mock_factory),
+            patch("ado_workflows_mcp.tools._helpers.AdoClient"),
+            patch(
+                "ado_workflows_mcp.tools.pr_context._lib_create_pr",
+                side_effect=RuntimeError("unexpected lib failure"),
+            ),
+        ):
+            # When: create_pull_request called
+            result = create_pull_request(
+                source_branch="feature/widget",
+                target_branch="main",
+            )
+
+        # Then: wrapper enriches as internal with branch / credential guidance
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.error_type == "internal", (
+            f"Expected error_type='internal', got: {result.error_type!r}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on internal error, got None. Error: {result.error}"
+        )
+        guidance = result.ai_guidance.action_required.lower()
+        assert "branch" in guidance or "credential" in guidance, (
+            f"ai_guidance should mention branches or credentials for SDK-style "
+            f"failure, got: {guidance}"
         )
 
 

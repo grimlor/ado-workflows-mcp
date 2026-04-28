@@ -110,25 +110,35 @@ class TestSetRepositoryContext:
             f"Expected success=True in context result. Got: {result}"
         )
 
-    def test_invalid_directory_returns_error_dict(self, tmp_path: Any) -> None:
+    def test_invalid_directory_returns_actionable_error(self, tmp_path: Any) -> None:
         """
-        Given an invalid directory
+        Given a directory that exists but contains no Azure DevOps repository
         When set_repository_context is called
-        Then returns error dict with success=False and suggestion
+        Then returns ActionableError (error_type='not_found') with
+            ai_guidance directing the agent to retry with a working_directory
+            pointing at an Azure DevOps repository
         """
         # Given: a directory with no .git (real discovery returns nothing)
-        # When: called on a non-repo directory
+        # When: called on a non-repo directory -- library raises, wrapper returns the error
         result = set_repository_context(working_directory=str(tmp_path))
 
-        # Then: returns an error dict
-        assert isinstance(result, dict), (
-            f"Expected dict error result, got {type(result).__name__}: {result}"
+        # Then: returns an ActionableError (not a dict) with the new contract
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError under ado-workflows>=0.12.0 raise contract, "
+            f"got {type(result).__name__}: {result}"
         )
-        assert result.get("success") is False, (
-            f"Expected success=False for invalid dir. Got: {result}"
+        assert result.error_type == "not_found", (
+            f"Expected error_type='not_found' for missing ADO repo, got: {result.error_type!r}"
         )
-        assert result.get("suggestion") is not None, (
-            f"Expected suggestion on error dict. Got: {result}"
+        assert result.suggestion is not None, (
+            f"Expected suggestion on error, got None. Error: {result.error}"
+        )
+        assert result.ai_guidance is not None, (
+            f"Expected ai_guidance on error, got None. Error: {result.error}"
+        )
+        assert "working_directory" in result.ai_guidance.action_required, (
+            f"Expected action_required to direct agent to a corrected "
+            f"working_directory, got: {result.ai_guidance.action_required!r}"
         )
 
     def test_actionable_error_without_guidance_gets_enriched(self) -> None:
