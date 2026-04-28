@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.11.0 (2026-04-28)
+
+### Features
+
+- **deps**: Adopt ado-workflows>=0.12.0 raise contract
+  ([`a42b23a`](https://github.com/grimlor/ado-workflows-mcp/commit/a42b23a618e6f11c1b1eb89284fd19f6759fd7c3))
+
+
 ## v0.10.0 (2026-04-13)
 
 ### Chores
