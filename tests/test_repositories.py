@@ -3,14 +3,20 @@ BDD tests for tools/repositories.py — repository discovery tool.
 
 Covers:
 - TestRepositoryDiscovery: discovering ADO repos from local git remotes
+- TestDiscoverAllRepositoriesTool: enumerate every ADO repo under a workspace
 
 Public API surface (from src/ado_workflows_mcp/tools/repositories.py):
     repository_discovery(working_directory: str | None = None)
         -> dict[str, Any] | ActionableError
+    discover_all_repositories(working_directory: str | None = None)
+        -> list[dict[str, Any]] | ActionableError
 
 Library API surface (from ado_workflows.discovery):
     discover_repositories(search_root: str) -> list[dict[str, Any]]
     infer_target_repository(repositories, working_directory) -> dict[str, Any] | None
+
+Library API surface (from ado_workflows.context):
+    discover_all_repositories(working_directory: str | None) -> list[dict[str, Any]]
 
 I/O boundary:
     ado_workflows.discovery.Repo (GitPython)
@@ -23,9 +29,14 @@ from unittest.mock import MagicMock, patch
 
 from actionable_errors import ActionableError, AIGuidance
 
-from ado_workflows_mcp.tools.repositories import repository_discovery
+from ado_workflows_mcp.tools.repositories import (
+    discover_all_repositories,
+    repository_discovery,
+)
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     import pytest
 
 # ---------------------------------------------------------------------------
@@ -282,4 +293,174 @@ class TestRepositoryDiscovery:
         guidance = result.ai_guidance.action_required.lower()
         assert "unexpected" in guidance or "discovery" in guidance, (
             f"ai_guidance should mention unexpected/discovery, got: {guidance}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# TestDiscoverAllRepositoriesTool
+# ---------------------------------------------------------------------------
+
+
+_LIB_DISCOVER_ALL_PATCH = "ado_workflows_mcp.tools.repositories._lib_discover_all_repositories"
+
+
+def _make_repo_dir(workspace: Path, name: str) -> Path:
+    """Create a directory containing ``.git`` under *workspace*."""
+    repo = workspace / name
+    (repo / ".git").mkdir(parents=True)
+    return repo
+
+
+def _two_repo_workspace(tmp_path: Path) -> tuple[Path, Path, Path, str, str]:
+    """Build a workspace with two ADO repos in different orgs."""
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    repo_a = _make_repo_dir(workspace, "RepoA")
+    repo_b = _make_repo_dir(workspace, "RepoB")
+    url_a = "https://dev.azure.com/OrgA/Proj/_git/RepoA"
+    url_b = "https://dev.azure.com/OrgB/Proj/_git/RepoB"
+    return workspace, repo_a, repo_b, url_a, url_b
+
+
+def _repo_dispatcher(repo_a: Path, url_a: str, repo_b: Path, url_b: str) -> object:
+    """Return a side_effect that maps Repo(path) to the matching mock."""
+
+    def _dispatch(path: str, *_args: object, **_kwargs: object) -> MagicMock:
+        if path == str(repo_a):
+            return _mock_git_repo(url_a)
+        if path == str(repo_b):
+            return _mock_git_repo(url_b)
+        raise AssertionError(f"Unexpected Repo path: {path}")
+
+    return _dispatch
+
+
+class TestDiscoverAllRepositoriesTool:
+    """
+    REQUIREMENT: The MCP tool wraps the library
+    discover_all_repositories, returning the discovered repository list
+    on success and ActionableError on failure with
+    operation-specific guidance.
+
+    WHO: Agents responding to a multi-repo ambiguity error from any
+        other tool — the new ai_guidance instructs them to enumerate
+        candidates and surface a sub-prompt asking the user which
+        repo to operate against.
+    WHAT: (1) Successful discovery returns the list returned by the
+              library function unchanged.
+          (2) Empty workspace returns an empty list (success path,
+              not an error).
+          (3) Library raises ActionableError → tool returns it
+              unchanged (preserves library ai_guidance).
+          (4) Unexpected exception → tool returns
+              ActionableError.internal with operation-specific guidance.
+
+    MOCK BOUNDARY:
+        Mock:  ado_workflows.discovery.Repo (GitPython filesystem edge).
+        Real:  the MCP tool function, the library
+               discover_all_repositories, RepositoryContext.discover_all,
+               discover_repositories, ActionableError construction,
+               tmp_path filesystem.
+        Never: the MCP tool function (SUT), discover_all_repositories
+               (in-codebase function — mocking it would hide the
+               filesystem→repo-list integration this tool wraps).
+    """
+
+    def test_successful_discovery_returns_library_list_unchanged(self, tmp_path: Path) -> None:
+        """
+        Given a workspace with two ADO repos
+        When discover_all_repositories is called
+        Then the tool returns the same list the library returned,
+            with both organizations represented
+        """
+        # Given: a two-repo workspace
+        workspace, repo_a, repo_b, url_a, url_b = _two_repo_workspace(tmp_path)
+        dispatcher = _repo_dispatcher(repo_a, url_a, repo_b, url_b)
+
+        # When: the tool is called against that workspace
+        with patch(_REPO_PATCH, side_effect=dispatcher):
+            result = discover_all_repositories(working_directory=str(workspace))
+
+        # Then: returns a list with both repos represented
+        assert isinstance(result, list), f"Expected list, got {type(result).__name__}: {result}"
+        assert len(result) == 2, f"Expected 2 repos, got {len(result)}: {result}"
+        orgs = sorted(repo["organization"] for repo in result)
+        assert orgs == ["OrgA", "OrgB"], f"Expected ['OrgA', 'OrgB'], got {orgs}"
+
+    def test_empty_workspace_returns_empty_list_not_error(self, tmp_path: Path) -> None:
+        """
+        Given a workspace containing no git repos
+        When discover_all_repositories is called
+        Then returns an empty list (success path, not an error)
+        """
+        # Given: an empty workspace (no .git dirs)
+        workspace = tmp_path / "empty"
+        workspace.mkdir()
+
+        # When: the tool is called against the empty workspace
+        result = discover_all_repositories(working_directory=str(workspace))
+
+        # Then: empty list, not an error
+        assert isinstance(result, list), (
+            f"Expected list (success path), got {type(result).__name__}: {result}"
+        )
+        assert result == [], f"Expected [], got {result}"
+
+    def test_library_actionable_error_propagates_unchanged(self, tmp_path: Path) -> None:
+        """
+        Given the library raises ActionableError with ai_guidance set
+        When discover_all_repositories is called
+        Then the tool returns the same ActionableError unchanged
+        """
+        # Given: library raises an error that already has guidance
+        library_error = ActionableError.validation(
+            service="ado-workflows",
+            field_name="working_directory",
+            reason="library reason",
+            suggestion="library suggestion",
+            ai_guidance=AIGuidance(action_required="library guidance"),
+        )
+
+        # When: the library entry point raises
+        with patch(_LIB_DISCOVER_ALL_PATCH, side_effect=library_error):
+            result = discover_all_repositories(working_directory=str(tmp_path))
+
+        # Then: same error returned, library guidance preserved
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result is library_error, (
+            "Expected the same ActionableError instance to be returned unchanged"
+        )
+        assert result.ai_guidance is not None, (
+            "Expected library ai_guidance to be preserved, got None"
+        )
+        assert result.ai_guidance.action_required == "library guidance", (
+            f"Expected library ai_guidance preserved, got {result.ai_guidance.action_required!r}"
+        )
+
+    def test_unexpected_exception_returns_internal_actionable_error(self, tmp_path: Path) -> None:
+        """
+        Given the library raises an unexpected (non-ActionableError) exception
+        When discover_all_repositories is called
+        Then the tool returns ActionableError.internal with operation-specific
+            ai_guidance
+        """
+        # Given: library raises a bare exception
+        with patch(_LIB_DISCOVER_ALL_PATCH, side_effect=RuntimeError("kaboom")):
+            # When: tool is called
+            result = discover_all_repositories(working_directory=str(tmp_path))
+
+        # Then: returns ActionableError.internal with guidance
+        assert isinstance(result, ActionableError), (
+            f"Expected ActionableError, got {type(result).__name__}: {result}"
+        )
+        assert result.error_type == "internal", (
+            f"Expected error_type='internal', got {result.error_type!r}"
+        )
+        assert result.ai_guidance is not None, "Expected ai_guidance on internal error, got None"
+        action = result.ai_guidance.action_required.lower()
+        assert "discover" in action or "repository" in action or "repositories" in action, (
+            f"Expected guidance to mention discovery/repository, "
+            f"got: {result.ai_guidance.action_required!r}"
         )

@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "ado-workflows"
-version = "0.12.0"
+version = "0.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "actionable-errors" },
@@ -21,14 +21,14 @@ dependencies = [
     { name = "azure-identity" },
     { name = "gitpython" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e1/ca/71696b27b1da3ac139bb1cc1e63eb08705a440b88c6bc059262c06343970/ado_workflows-0.12.0.tar.gz", hash = "sha256:0bbd3e672cd812e1aa07d3aef87c49f320d751bf2123bf9265bbe57ab8bc642c", size = 200525, upload-time = "2026-04-28T22:37:06.364Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/4e/4e15c6ec5d8044972697bc70151069a468345c1410fabcf773cf6ade21f7/ado_workflows-0.13.0.tar.gz", hash = "sha256:d5f00a2a0b26aa8d65ea6d5a4ccb2e7a5c8c6473d7e35fa9c118bf3aede80103", size = 216157, upload-time = "2026-05-04T23:39:12.991Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bd/ea/db272c744334205972c179fd2b495587687d5fd80975d8a294cb3de5f47c/ado_workflows-0.12.0-py3-none-any.whl", hash = "sha256:2f3367399071c98badbecf473b20d85b4f1c1053e3d528fa3eb40ac9d677c029", size = 53512, upload-time = "2026-04-28T22:37:04.831Z" },
+    { url = "https://files.pythonhosted.org/packages/47/97/b36d58a5c374378c985ecfec496bb4c1999615e6518e7e402e6f713e1851/ado_workflows-0.13.0-py3-none-any.whl", hash = "sha256:1985aa363a05fefdc4bfb5713fd8d38bee6e21eac8ca63a9194cf6b0cb1e0342", size = 57454, upload-time = "2026-05-04T23:39:11.587Z" },
 ]
 
 [[package]]
 name = "ado-workflows-mcp"
-version = "0.9.0"
+version = "0.11.0"
 source = { editable = "." }
 dependencies = [
     { name = "ado-workflows" },
@@ -50,7 +50,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ado-workflows", specifier = ">=0.12.0" },
+    { name = "ado-workflows", specifier = ">=0.13.0" },
     { name = "fastmcp", specifier = ">=2.0.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4,<5" },
     { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1,<2" },

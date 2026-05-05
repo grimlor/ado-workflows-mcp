@@ -6,6 +6,9 @@ import os
 from typing import Any
 
 from actionable_errors import ActionableError, AIGuidance
+from ado_workflows.context import (
+    discover_all_repositories as _lib_discover_all_repositories,
+)
 from ado_workflows.discovery import discover_repositories, infer_target_repository
 
 from ado_workflows_mcp.mcp_instance import mcp
@@ -78,6 +81,41 @@ def repository_discovery(
             ai_guidance=AIGuidance(
                 action_required=(
                     "Unexpected error during repository discovery."
+                    " Check the working directory and retry."
+                ),
+            ),
+        )
+
+
+@mcp.tool()
+def discover_all_repositories(
+    working_directory: str | None = None,
+) -> list[dict[str, Any]] | ActionableError:
+    """
+    List every Azure DevOps repository discovered under the working directory.
+
+    Walks the working directory (or cwd) for git repositories with
+    Azure DevOps remotes. Use this tool when another tool surfaces a
+    multi-repo ambiguity error to enumerate the candidate repos so an
+    end user can disambiguate.
+
+    Args:
+        working_directory: Path to scan. Defaults to the current working
+            directory when omitted.
+
+    """
+    try:
+        return _lib_discover_all_repositories(working_directory=working_directory)
+    except ActionableError as exc:
+        return exc
+    except Exception as exc:
+        return ActionableError.internal(
+            service="ado-workflows-mcp",
+            operation="discover_all_repositories",
+            raw_error=str(exc),
+            ai_guidance=AIGuidance(
+                action_required=(
+                    "Unexpected error while discovering repositories."
                     " Check the working directory and retry."
                 ),
             ),

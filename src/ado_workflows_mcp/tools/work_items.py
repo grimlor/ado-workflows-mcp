@@ -17,6 +17,9 @@ from ado_workflows.mutations import (
     move_work_items_to_sprint as _lib_move_work_items_to_sprint,
     update_work_item as _lib_update_work_item,
 )
+from ado_workflows.work_items import (
+    establish_work_item_context as _lib_establish_work_item,
+)
 
 from ado_workflows_mcp.mcp_instance import mcp
 from ado_workflows_mcp.tools._helpers import get_client
@@ -24,26 +27,33 @@ from ado_workflows_mcp.tools._helpers import get_client
 
 @mcp.tool()
 def get_work_item(
-    project: str,
-    work_item_id: int,
+    work_item_url_or_id: str,
     *,
     working_directory: str | None = None,
 ) -> WorkItemDetail | ActionableError:
     """
-    Fetch a single work item by ID with full field data.
+    Fetch a single work item by URL or numeric ID.
 
     Returns WorkItemDetail with all fields, area path, parent ID,
     and a full fields dict for type-specific access.
 
+    Caveat — work board ≠ code repo: passing a bare numeric ID
+    resolves the org/project from the cached repository context, which
+    can land on the wrong organization when the work board lives in
+    a different tenant than any of the discovered code repos. Prefer
+    passing a full work-item URL whenever one is available.
+
     Args:
-        project: Azure DevOps project name.
-        work_item_id: Numeric work item ID.
-        working_directory: Optional path for ADO context resolution.
+        work_item_url_or_id: A full Azure DevOps work-item URL or a
+            numeric work-item ID.
+        working_directory: Optional path for repository-context
+            resolution when using a numeric ID.
 
     """
     try:
-        client = get_client(working_directory)
-        return _lib_get_work_item(client, project, work_item_id)
+        ctx = _lib_establish_work_item(work_item_url_or_id, working_directory=working_directory)
+        client = get_client(working_directory, org_url=ctx.org_url)
+        return _lib_get_work_item(client, ctx.project, ctx.work_item_id)
     except ActionableError as exc:
         return exc
     except Exception as exc:
@@ -52,11 +62,11 @@ def get_work_item(
             operation="get_work_item",
             raw_error=str(exc),
             ai_guidance=AIGuidance(
-                action_required="Work item fetch failed. Verify the work item ID and credentials.",
+                action_required="Work item fetch failed. Verify the work item URL or ID and credentials.",
                 checks=[
-                    "Confirm the work item ID exists in the project",
+                    "Confirm the work item exists in the resolved project",
                     "Verify Azure DevOps authentication (run 'az login' if needed)",
-                    "Confirm the project name is correct",
+                    "Prefer a full work-item URL over a bare numeric ID",
                 ],
             ),
         )
@@ -101,28 +111,36 @@ def get_work_items(
 
 @mcp.tool()
 def update_work_item(
-    project: str,
-    work_item_id: int,
-    *,
+    work_item_url_or_id: str,
     fields: dict[str, Any],
+    *,
     working_directory: str | None = None,
 ) -> WorkItemDetail | ActionableError:
     """
-    Update fields on an existing work item.
+    Update fields on an existing work item, addressed by URL or ID.
 
     Accepts a dict of field reference names to values (e.g.
     ``{"System.State": "Closed", "System.IterationPath": "..."}``).
 
+    Caveat — work board ≠ code repo: passing a bare numeric ID
+    resolves the org/project from the cached repository context, which
+    can land on the wrong organization when the work board lives in
+    a different tenant than any of the discovered code repos. Prefer
+    passing a full work-item URL whenever one is available — mutations
+    in the wrong tenant are unrecoverable without manual intervention.
+
     Args:
-        project: Azure DevOps project name.
-        work_item_id: Numeric work item ID.
+        work_item_url_or_id: A full Azure DevOps work-item URL or a
+            numeric work-item ID.
         fields: Dict mapping field reference names to new values.
-        working_directory: Optional path for ADO context resolution.
+        working_directory: Optional path for repository-context
+            resolution when using a numeric ID.
 
     """
     try:
-        client = get_client(working_directory)
-        return _lib_update_work_item(client, project, work_item_id, fields=fields)
+        ctx = _lib_establish_work_item(work_item_url_or_id, working_directory=working_directory)
+        client = get_client(working_directory, org_url=ctx.org_url)
+        return _lib_update_work_item(client, ctx.project, ctx.work_item_id, fields=fields)
     except ActionableError as exc:
         return exc
     except Exception as exc:
@@ -133,10 +151,10 @@ def update_work_item(
             ai_guidance=AIGuidance(
                 action_required="Work item update failed. Verify field names and credentials.",
                 checks=[
-                    "Confirm the work item ID exists in the project",
+                    "Confirm the work item exists in the resolved project",
                     "Verify field reference names are valid (use get_work_item_type_fields)",
                     "Verify Azure DevOps authentication (run 'az login' if needed)",
-                    "Confirm the project name is correct",
+                    "Prefer a full work-item URL over a bare numeric ID",
                 ],
             ),
         )
@@ -239,31 +257,41 @@ def move_work_items_to_sprint(
 
 @mcp.tool()
 def clone_work_item(
-    project: str,
-    source_id: int,
+    source_work_item_url_or_id: str,
     *,
     field_overrides: dict[str, Any] | None = None,
     working_directory: str | None = None,
 ) -> WorkItemDetail | ActionableError:
     """
-    Clone a work item into a new item of the same type.
+    Clone a work item into a new item of the same type, addressed by URL or ID.
 
     Copies all fields from the source, applies optional overrides,
     and preserves the parent link. Does not close the source.
 
+    Caveat — work board ≠ code repo: passing a bare numeric ID
+    resolves the org/project from the cached repository context, which
+    can land on the wrong organization when the work board lives in
+    a different tenant than any of the discovered code repos. Prefer
+    passing a full work-item URL — clones created in the wrong tenant
+    are unrecoverable without manual cleanup.
+
     Args:
-        project: Azure DevOps project name.
-        source_id: Work item ID to clone from.
+        source_work_item_url_or_id: A full Azure DevOps work-item URL
+            or a numeric work-item ID for the source.
         field_overrides: Optional dict of fields to override in the clone.
-        working_directory: Optional path for ADO context resolution.
+        working_directory: Optional path for repository-context
+            resolution when using a numeric ID.
 
     """
     try:
-        client = get_client(working_directory)
+        ctx = _lib_establish_work_item(
+            source_work_item_url_or_id, working_directory=working_directory
+        )
+        client = get_client(working_directory, org_url=ctx.org_url)
         return _lib_clone_work_item(
             client,
-            project,
-            source_id,
+            ctx.project,
+            ctx.work_item_id,
             field_overrides=field_overrides,
         )
     except ActionableError as exc:
@@ -276,9 +304,9 @@ def clone_work_item(
             ai_guidance=AIGuidance(
                 action_required="Clone failed. Verify source work item and credentials.",
                 checks=[
-                    "Confirm the source work item ID exists",
+                    "Confirm the source work item exists in the resolved project",
                     "Verify Azure DevOps authentication (run 'az login' if needed)",
-                    "Confirm the project name is correct",
+                    "Prefer a full work-item URL over a bare numeric ID",
                 ],
             ),
         )

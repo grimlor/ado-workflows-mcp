@@ -57,11 +57,17 @@ from ado_workflows_mcp.tools.repo_content import (
     get_repo_file_content as get_repo_file_content,
     list_repo_items as list_repo_items,
 )
-from ado_workflows_mcp.tools.repositories import repository_discovery as repository_discovery
+from ado_workflows_mcp.tools.repositories import (
+    discover_all_repositories as discover_all_repositories,
+    repository_discovery as repository_discovery,
+)
 from ado_workflows_mcp.tools.repository_context import (
     clear_repository_context as clear_repository_context,
     get_repository_context_status as get_repository_context_status,
     set_repository_context as set_repository_context,
+)
+from ado_workflows_mcp.tools.work_item_context import (
+    establish_work_item_context as establish_work_item_context,
 )
 from ado_workflows_mcp.tools.work_items import (
     clone_work_item as clone_work_item,
@@ -84,7 +90,9 @@ __all__ = [
     "complete_pull_request",
     "create_pull_request",
     "create_work_item",
+    "discover_all_repositories",
     "establish_pr_context",
+    "establish_work_item_context",
     "get_current_user",
     "get_pr_author",
     "get_pr_file_changes",
