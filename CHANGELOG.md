@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.12.0 (2026-05-05)
+
+### Features
+
+- **tools**: Surface plural-aware multi-org work-item APIs
+  ([`bcdfb63`](https://github.com/grimlor/ado-workflows-mcp/commit/bcdfb631b74447d45199a6f6534179bb0bb7b198))
+
+
 ## v0.11.0 (2026-04-28)
 
 ### Features
